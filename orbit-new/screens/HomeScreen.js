@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
-import { Wifi, WifiOff, ChevronRight } from 'lucide-react-native';
+import { Wifi, ChevronRight } from 'lucide-react-native';
 import Avatar from '../components/Avatar';
 import { colors } from '../styles/colors';
 import { MOCK_WAVES } from '../data/mockData';
@@ -23,8 +24,8 @@ const HomeScreen = ({ user, onToggleDiscovery, onSelectWave }) => {
                     user.isLookingForFriends && styles.statusCardActive
                 ]}
             >
-                <View style={[styles.statusIcon, user.isLookingForFriends ? { backgroundColor: 'rgba(16, 185, 129, 0.2)' } : {}]}>
-                    <Wifi size={24} color={user.isLookingForFriends ? colors.success : colors.textMuted} />
+                <View style={[styles.statusIcon, user.isLookingForFriends ? { backgroundColor: 'rgba(255, 255, 255, 0.2)' } : {}]}>
+                    <Wifi size={24} color={user.isLookingForFriends ? '#fff' : colors.textMuted} />
                 </View>
                 <View style={{ flex: 1, marginLeft: 16 }}>
                     <Text style={styles.h3}>Discovery Mode</Text>
@@ -32,8 +33,8 @@ const HomeScreen = ({ user, onToggleDiscovery, onSelectWave }) => {
                         {user.isLookingForFriends ? 'Scanning for nearby users...' : 'Paused'}
                     </Text>
                 </View>
-                <View style={[styles.toggleBtn, user.isLookingForFriends ? { backgroundColor: colors.success } : { backgroundColor: colors.border }]}>
-                    <View style={[styles.toggleKnob, user.isLookingForFriends ? { alignSelf: 'flex-end' } : { alignSelf: 'flex-start' }]} />
+                <View style={[styles.toggleBtn, user.isLookingForFriends ? { backgroundColor: '#fff' } : { backgroundColor: colors.border }]}>
+                    <View style={[styles.toggleKnob, user.isLookingForFriends ? { alignSelf: 'flex-end', backgroundColor: colors.discovery } : { alignSelf: 'flex-start' }]} />
                 </View>
             </TouchableOpacity>
 
@@ -87,8 +88,8 @@ const styles = StyleSheet.create({
         borderWidth: 1, borderColor: colors.border,
     },
     statusCardActive: {
-        borderColor: 'rgba(16, 185, 129, 0.3)',
-        backgroundColor: 'rgba(16, 185, 129, 0.08)'
+        backgroundColor: colors.discovery,
+        borderColor: colors.discovery,
     },
     statusIcon: { width: 50, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgLight },
     toggleBtn: { width: 44, height: 24, borderRadius: 12, padding: 2, justifyContent: 'center' },
@@ -103,22 +104,24 @@ const styles = StyleSheet.create({
 
     // Wave Card
     waveCard: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgCard,
+        flexDirection: 'row', alignItems: 'center', backgroundColor: colors.waveHighlight,
         padding: 18, borderRadius: 24, marginBottom: 16,
         borderWidth: 1, borderColor: colors.border,
         shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 3
     },
     waveInfo: { marginLeft: 16, flex: 1, marginRight: 8 },
     waveHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+
+    // Text is white now because background is blue (#003161)
     cardTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginRight: 8 },
-    pronounBadge: { backgroundColor: colors.bgLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+    pronounBadge: { backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
     pronounText: { fontSize: 11, color: colors.textMuted, fontWeight: '600' },
     bioText: { fontSize: 14, color: colors.textMuted, marginBottom: 10 },
 
     cardFooter: { flexDirection: 'row', alignItems: 'center' },
-    encounterContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(99, 102, 241, 0.1)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
-    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.primary, marginRight: 6 },
-    encounterText: { color: colors.primary, fontWeight: '600', fontSize: 12 },
+    encounterContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.7)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent, marginRight: 6 },
+    encounterText: { color: colors.accent, fontWeight: '600', fontSize: 12 },
     chevronContainer: { padding: 8 },
 });
 

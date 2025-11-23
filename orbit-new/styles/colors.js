@@ -1,18 +1,27 @@
 
 export const colors = {
-    primary: '#6366f1', // Indigo 500
-    primaryDark: '#4f46e5', // Indigo 600
-    primaryLight: '#818cf8', // Indigo 400
+    primary: '#C69749', // Pale Yellow - Primary Action
+    primaryDark: '#e6dc9f',
 
-    bg: '#0b1120', // Very dark slate/blue (Rich Black)
-    bgLight: '#1e293b', // Slate 800
-    bgCard: '#151e2e', // Custom card bg
+    // Main Palette
+    bg: '#000B58', // Deep Blue - Main Background
+    bgCard: '#003161', // Lighter Blue - Cards
+    accent: '#006A67', // Teal - Accents/Success
 
-    text: '#f1f5f9', // Slate 100
-    textMuted: '#94a3b8', // Slate 400
+    // Functional mappings
+    discovery: '#1F7D53', // Teal for Discovery
+    chatSent: '#73AF6F', // Yellow for "Me" messages
+    waveHighlight: '#003161', // Blue for Wave Cards
 
-    success: '#10b981', // Emerald 500
-    error: '#f43f5e', // Rose 500
+    // UI Elements
+    bgLight: 'rgba(255, 255, 255, 0.1)', // Inputs
 
-    border: '#334155', // Slate 700
+    text: '#ffffff', // Main Text (White on Blue/Teal)
+    textDark: '#000B58', // Text on Yellow (Primary)
+    textMuted: '#cbd5e1', // Light Slate for subtitles
+
+    success: '#006A67', // Teal
+    error: '#f43f5e', // Rose
+
+    border: 'rgba(255, 255, 255, 0.15)',
 };

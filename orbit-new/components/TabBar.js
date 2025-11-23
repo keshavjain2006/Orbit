@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Platform } from 'react-native';
 import { LayoutGrid, MessageCircle } from 'lucide-react-native';
@@ -24,7 +25,7 @@ const TabBar = ({ activeTab, onTabChange }) => {
                             <View style={[styles.iconContainer, isActive && styles.iconContainerActive]}>
                                 <tab.icon
                                     size={24}
-                                    color={isActive ? '#fff' : colors.textMuted}
+                                    color={isActive ? colors.textDark : colors.textMuted}
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
                             </View>
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
     },
     tabBar: {
         flexDirection: 'row',
-        backgroundColor: '#1e293bf2', // Slate 800 with opacity
+        backgroundColor: colors.bgCard, // Use card blue for the bar
         borderRadius: 35,
         padding: 6,
         paddingHorizontal: 8,
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
         shadowRadius: 20,
         elevation: 10,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: colors.border,
         width: 'auto',
         minWidth: 200,
         justifyContent: 'space-between',
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     tabLabel: {
-        color: '#fff',
+        color: colors.textDark,
         fontWeight: '600',
         fontSize: 14,
         marginLeft: 8,

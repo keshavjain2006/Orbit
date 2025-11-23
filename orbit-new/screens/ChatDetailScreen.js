@@ -75,7 +75,7 @@ const ChatDetailScreen = ({ chat, onBack, onProfilePress }) => {
                             placeholderTextColor={colors.textMuted}
                         />
                         <TouchableOpacity style={styles.sendBtn}>
-                            <Send size={18} color="#fff" style={{ marginLeft: 2 }} />
+                            <Send size={18} color={colors.textDark} style={{ marginLeft: 2 }} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -94,14 +94,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: colors.bgLight,
+        borderBottomColor: colors.border,
         backgroundColor: colors.bg
     },
     backButton: { marginRight: 8, padding: 4 },
     profileContainer: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     headerTextContainer: { marginLeft: 10 },
     headerName: { fontSize: 16, fontWeight: '700', color: colors.text },
-    activeStatus: { fontSize: 12, color: colors.success, fontWeight: '500' },
+    activeStatus: { fontSize: 12, color: colors.accent, fontWeight: '500' },
     iconButton: { padding: 8, marginLeft: 4 },
 
     // Messages
@@ -123,16 +123,16 @@ const styles = StyleSheet.create({
 
     msgContainerMe: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 16 },
     bubbleMe: {
-        backgroundColor: colors.primary,
+        backgroundColor: colors.chatSent,
         padding: 12,
         borderRadius: 20,
         borderBottomRightRadius: 4
     },
-    msgTextMe: { color: '#fff', fontSize: 16, lineHeight: 22 },
+    msgTextMe: { color: colors.textDark, fontSize: 16, lineHeight: 22, fontWeight: '500' },
     timeStampMe: { fontSize: 10, color: colors.textMuted, marginTop: 4, marginRight: 4, textAlign: 'right' },
 
     // Input Bar
-    inputWrapper: { padding: 10, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.bgLight },
+    inputWrapper: { padding: 10, backgroundColor: colors.bg, borderTopWidth: 1, borderTopColor: colors.border },
     inputContainer: {
         flexDirection: 'row',
         backgroundColor: colors.bgLight,
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.primary,
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: colors.primary,
+        shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowRadius: 4,
         elevation: 2
