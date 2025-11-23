@@ -1,608 +1,279 @@
 import React, { useState } from 'react';
 import {
     StyleSheet,
-    Text,
     View,
-    TextInput,
+    Text,
     TouchableOpacity,
-    ScrollView,
     SafeAreaView,
     Modal,
-    KeyboardAvoidingView,
-    Platform,
-    StatusBar,
     Alert,
-    TouchableWithoutFeedback,
-    Keyboard
+    StatusBar,
 } from 'react-native';
-import {
-    Camera, Users, Wifi, WifiOff, Send, ArrowLeft, Plus, X, Phone
-} from 'lucide-react-native';
+import { Plus, MessageCircle, X } from 'lucide-react-native';
 
-// --- Configuration ---
-const colors = {
-    primary: '#6366f1', // Indigo
-    secondary: '#8b5cf6', // Purple
-    bg: '#0f172a', // Dark blue
-    bgLight: '#1e293b',
-    bgCard: '#334155',
-    text: '#f1f5f9',
-    textMuted: '#94a3b8',
-    success: '#10b981',
-};
+// Components
+import Avatar from './components/Avatar';
+import TabBar from './components/TabBar';
+import Button from './components/Button';
 
-// --- Mock Data ---
-const mockUser = {
-    id: '1',
-    name: 'Alex Chen',
-    phone: '+1234567890',
-    pronouns: 'they/them',
-    bio: 'Coffee enthusiast ☕ | Love meeting new people',
-    avatar: '👤',
-    isLookingForFriends: true,
-};
+// Screens
+import LoginScreen from './screens/LoginScreen';
+import CreateProfileScreen from './screens/CreateProfileScreen';
+import EditProfileScreen from './screens/EditProfileScreen';
+import HomeScreen from './screens/HomeScreen';
+import ChatScreen from './screens/ChatScreen';
+import WaveDetailScreen from './screens/WaveDetailScreen';
+import ChatDetailScreen from './screens/ChatDetailScreen';
 
-const mockPotentialWaves = [
-    { id: '2', name: 'Jordan Smith', pronouns: 'she/her', bio: 'Designer & runner 🏃‍♀️', avatar: '👩', encounters: 3 },
-    { id: '3', name: 'Sam Rodriguez', pronouns: 'he/him', bio: 'Music lover 🎵', avatar: '👨', encounters: 4 },
-    { id: '4', name: 'Taylor Kim', pronouns: 'they/them', bio: 'Foodie exploring the city', avatar: '🧑', encounters: 3 },
-];
+// Data/Theme
+import { MOCK_USER } from './data/mockData';
+import { colors } from './styles/colors';
 
-const mockFriends = [
-    { id: '5', name: 'Morgan Lee', avatar: '👩‍🦰', lastMessage: 'See you tomorrow!', timestamp: '2m ago', unread: 0 },
-    { id: '6', name: 'Casey Brown', avatar: '👨‍🦱', lastMessage: 'Thanks!', timestamp: '1h ago', unread: 2 },
-];
+export default function App() {
+    // Navigation State
+    const [screen, setScreen] = useState('login'); // login, createProfile, main, waveDetail, chatDetail, editProfile
+    const [activeTab, setActiveTab] = useState('home');
 
-// --- Helper for Keyboard Dismissal ---
-const DismissKeyboard = ({ children }) => (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={{ flex: 1 }}>
-            {children}
-        </View>
-    </TouchableWithoutFeedback>
-);
+    // Data State
+    const [user, setUser] = useState(MOCK_USER);
+    const [wavedUserIds, setWavedUserIds] = useState([]); // Track IDs of people we've waved at
 
-// --- Components ---
-const Button = ({ children, onClick, variant = 'primary', disabled = false, icon: Icon }) => {
-    const isPrimary = variant === 'primary';
-    return (
-        <TouchableOpacity
-            onPress={onClick}
-            disabled={disabled}
-            style={[
-                styles.button,
-                isPrimary ? { backgroundColor: colors.primary } : { backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.primary },
-                disabled && { opacity: 0.5 }
-            ]}
-        >
-            {Icon && <Icon size={20} color="#fff" style={{ marginRight: 8 }} />}
-            <Text style={styles.buttonText}>{children}</Text>
-        </TouchableOpacity>
-    );
-};
-
-const Card = ({ children, onClick }) => (
-    <TouchableOpacity
-        activeOpacity={onClick ? 0.7 : 1}
-        onPress={onClick}
-        style={styles.card}
-    >
-        {children}
-    </TouchableOpacity>
-);
-
-const Avatar = ({ emoji, size = 'md', badge }) => {
-    const sizeMap = { sm: 40, md: 60, lg: 80, xl: 100 };
-    const fontSizeMap = { sm: 20, md: 30, lg: 40, xl: 50 };
-    const dim = sizeMap[size];
-
-    return (
-        <View style={{ width: dim, height: dim, position: 'relative' }}>
-            <View style={[styles.avatarBase, { width: dim, height: dim, borderRadius: dim / 2 }]}>
-                <Text style={{ fontSize: fontSizeMap[size] }}>{emoji}</Text>
-            </View>
-            {badge ? (
-                <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{badge}</Text>
-                </View>
-            ) : null}
-        </View>
-    );
-};
-
-const Header = ({ title, onBack }) => (
-    <View style={styles.headerRow}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {onBack && (
-                <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                    <ArrowLeft size={24} color={colors.text} />
-                </TouchableOpacity>
-            )}
-            <Text style={styles.headerTitle}>{title}</Text>
-        </View>
-    </View>
-);
-
-// --- Screens ---
-
-const LoginScreen = ({ navigate, phoneNumber, setPhoneNumber }) => (
-    <DismissKeyboard>
-        <View style={[styles.screen, { justifyContent: 'center', padding: 20 }]}>
-            <View style={{ alignItems: 'center', marginBottom: 40 }}>
-                <View style={styles.logoCircle}>
-                    <Text style={{ fontSize: 40 }}>🌍</Text>
-                </View>
-                <Text style={styles.logoTitle}>Orbit</Text>
-                <Text style={styles.logoSubtitle}>Connect with people nearby</Text>
-            </View>
-
-            <Card>
-                <Text style={styles.label}>Phone Number</Text>
-                <TextInput
-                    style={styles.input}
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    placeholder="+1 (555) 000-0000"
-                    placeholderTextColor="#666"
-                    keyboardType="phone-pad"
-                />
-                <View style={{ height: 16 }} />
-                <Button onClick={() => navigate('createProfile')} icon={Phone}>
-                    Continue with Phone
-                </Button>
-            </Card>
-        </View>
-    </DismissKeyboard>
-);
-
-const CreateProfileScreen = ({ navigate, profileData, setProfileData, completeProfile }) => (
-    <View style={styles.screen}>
-        <Header title="Create Profile" onBack={() => navigate('login')} />
-        <ScrollView
-            contentContainerStyle={{ padding: 20 }}
-            keyboardDismissMode="on-drag"
-            keyboardShouldPersistTaps="handled"
-        >
-            <DismissKeyboard>
-                <View>
-                    <View style={{ alignItems: 'center', marginBottom: 30 }}>
-                        <TouchableOpacity style={styles.cameraButton}>
-                            <Avatar emoji={profileData.avatar} size="xl" />
-                            <View style={styles.cameraOverlay}>
-                                <Camera size={24} color="white" />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-
-                    <Card>
-                        <Text style={styles.label}>Name *</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={profileData.name}
-                            onChangeText={(t) => setProfileData({ ...profileData, name: t })}
-                            placeholder="Your name"
-                            placeholderTextColor="#666"
-                        />
-                        <Text style={[styles.label, { marginTop: 15 }]}>Pronouns</Text>
-                        <TextInput
-                            style={styles.input}
-                            value={profileData.pronouns}
-                            onChangeText={(t) => setProfileData({ ...profileData, pronouns: t })}
-                            placeholder="he/him, she/her..."
-                            placeholderTextColor="#666"
-                        />
-                        <Text style={[styles.label, { marginTop: 15 }]}>Bio (Optional)</Text>
-                        <TextInput
-                            style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
-                            value={profileData.bio}
-                            onChangeText={(t) => setProfileData({ ...profileData, bio: t })}
-                            placeholder="Tell people about yourself..."
-                            placeholderTextColor="#666"
-                            multiline
-                        />
-                    </Card>
-
-                    <View style={{ marginTop: 20 }}>
-                        <Button
-                            onClick={completeProfile}
-                            disabled={!profileData.name}
-                        >
-                            Complete Profile
-                        </Button>
-                    </View>
-                </View>
-            </DismissKeyboard>
-        </ScrollView>
-    </View>
-);
-
-const HomeScreen = ({ navigate, user, toggleDiscovery, setShowProfilePopup }) => (
-    <View style={styles.screen}>
-        <View style={styles.topBar}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TouchableOpacity onPress={() => setShowProfilePopup(user)}>
-                    <Avatar emoji={user.avatar} size="sm" />
-                </TouchableOpacity>
-                <View style={{ marginLeft: 12 }}>
-                    <Text style={styles.h2}>Orbit</Text>
-                    <Text style={{ color: colors.textMuted }}>Discover nearby</Text>
-                </View>
-            </View>
-            <TouchableOpacity
-                onPress={toggleDiscovery}
-                style={[styles.iconBtn, { backgroundColor: user.isLookingForFriends ? colors.success : colors.bgCard }]}
-            >
-                {user.isLookingForFriends ? <Wifi size={24} color="#fff" /> : <WifiOff size={24} color="#fff" />}
-            </TouchableOpacity>
-        </View>
-
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
-            <Card>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View style={[styles.iconBox, { backgroundColor: user.isLookingForFriends ? colors.success : colors.bgLight }]}>
-                        <Wifi size={24} color="white" />
-                    </View>
-                    <View style={{ marginLeft: 12, flex: 1 }}>
-                        <Text style={styles.h3}>Discovery Mode</Text>
-                        <Text style={{ color: colors.textMuted }}>
-                            {user.isLookingForFriends ? 'Active: Scanning nearby...' : 'Paused'}
-                        </Text>
-                    </View>
-                </View>
-            </Card>
-
-            <View style={styles.sectionHeader}>
-                <Text style={styles.h2}>Potential Waves</Text>
-                <TouchableOpacity onPress={() => navigate('waveList')}>
-                    <Text style={{ color: colors.primary }}>See all</Text>
-                </TouchableOpacity>
-            </View>
-
-            {mockPotentialWaves.slice(0, 3).map(person => (
-                <View key={person.id} style={{ marginBottom: 10 }}>
-                    <Card onClick={() => navigate('waveDetail', person)}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Avatar emoji={person.avatar} size="md" badge={person.encounters} />
-                            <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.h3}>{person.name}</Text>
-                                <Text style={{ color: colors.textMuted }}>{person.pronouns}</Text>
-                            </View>
-                            <Text style={{ color: colors.primary, fontWeight: 'bold' }}>{person.encounters}x</Text>
-                        </View>
-                    </Card>
-                </View>
-            ))}
-
-            <View style={styles.sectionHeader}>
-                <Text style={styles.h2}>Friends</Text>
-                <TouchableOpacity onPress={() => navigate('addContacts')}>
-                    <Plus size={24} color={colors.primary} />
-                </TouchableOpacity>
-            </View>
-
-            {mockFriends.map(friend => (
-                <View key={friend.id} style={{ marginBottom: 10 }}>
-                    <Card onClick={() => navigate('chat', friend)}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Avatar emoji={friend.avatar} size="md" badge={friend.unread || null} />
-                            <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.h3}>{friend.name}</Text>
-                                <Text style={{ color: colors.textMuted }} numberOfLines={1}>{friend.lastMessage}</Text>
-                            </View>
-                            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{friend.timestamp}</Text>
-                        </View>
-                    </Card>
-                </View>
-            ))}
-        </ScrollView>
-    </View>
-);
-
-const WaveListScreen = ({ navigate }) => (
-    <View style={styles.screen}>
-        <Header title="Potential Waves" onBack={() => navigate('home')} />
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
-            {mockPotentialWaves.map(person => (
-                <View key={person.id} style={{ marginBottom: 12 }}>
-                    <Card onClick={() => navigate('waveDetail', person)}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Avatar emoji={person.avatar} size="md" badge={person.encounters} />
-                            <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.h3}>{person.name}</Text>
-                                <Text style={{ color: colors.textMuted }}>{person.pronouns}</Text>
-                                <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 4 }}>{person.bio}</Text>
-                            </View>
-                            <Text style={{ color: colors.primary, fontWeight: 'bold' }}>{person.encounters}x</Text>
-                        </View>
-                    </Card>
-                </View>
-            ))}
-        </ScrollView>
-    </View>
-);
-
-const WaveDetailScreen = ({ navigate, selectedChat }) => {
-    const [hasWaved, setHasWaved] = useState(false);
-    return (
-        <View style={styles.screen}>
-            <Header title="Wave Detail" onBack={() => navigate('waveList')} />
-            <ScrollView contentContainerStyle={{ padding: 20, alignItems: 'center' }}>
-                <Avatar emoji={selectedChat?.avatar} size="xl" badge={selectedChat?.encounters} />
-                <Text style={[styles.h1, { marginTop: 10 }]}>{selectedChat?.name}</Text>
-                <Text style={{ color: colors.textMuted, fontSize: 18, marginBottom: 30 }}>{selectedChat?.pronouns}</Text>
-
-                <Card>
-                    <Text style={[styles.h3, { textAlign: 'center' }]}>{selectedChat?.bio}</Text>
-                </Card>
-                <View style={{ height: 20 }} />
-                <Card>
-                    <View style={{ alignItems: 'center' }}>
-                        <Text style={{ color: colors.textMuted }}>Encounters</Text>
-                        <Text style={{ fontSize: 40, fontWeight: 'bold', color: colors.primary }}>{selectedChat?.encounters}</Text>
-                    </View>
-                </Card>
-
-                <View style={{ width: '100%', marginTop: 30 }}>
-                    {!hasWaved ? (
-                        <Button onClick={() => setHasWaved(true)} icon={Send}>
-                            Wave at {selectedChat?.name.split(' ')[0]}
-                        </Button>
-                    ) : (
-                        <Card>
-                            <View style={{ alignItems: 'center', padding: 10 }}>
-                                <Text style={[styles.h3, { color: colors.success, marginVertical: 10 }]}>Wave sent!</Text>
-                                <Text style={{ color: colors.textMuted, textAlign: 'center' }}>
-                                    You'll be notified if they wave back.
-                                </Text>
-                            </View>
-                        </Card>
-                    )}
-                </View>
-            </ScrollView>
-        </View>
-    );
-};
-
-const ChatScreen = ({ navigate, selectedChat, setShowProfilePopup }) => {
-    const [message, setMessage] = useState('');
-    const messages = [
-        { id: 1, text: 'Hey! Nice to meet you', sender: 'them', time: '10:23 AM' },
-        { id: 2, text: 'Hi! How are you?', sender: 'me', time: '10:25 AM' },
-        { id: 3, text: 'Great! Love this app', sender: 'them', time: '10:27 AM' },
-    ];
-
-    return (
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.screen}>
-            <View style={styles.headerRow}>
-                <TouchableOpacity onPress={() => navigate('home')} style={{ marginRight: 15 }}>
-                    <ArrowLeft size={24} color={colors.text} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => setShowProfilePopup(selectedChat)} style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Avatar emoji={selectedChat?.avatar} size="sm" />
-                    <Text style={[styles.h3, { marginLeft: 10 }]}>{selectedChat?.name}</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/* Dismiss keyboard on scroll drag */}
-            <ScrollView
-                style={{ flex: 1, padding: 20 }}
-                keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps="handled"
-            >
-                {messages.map(msg => (
-                    <View key={msg.id} style={{ alignSelf: msg.sender === 'me' ? 'flex-end' : 'flex-start', marginBottom: 15, maxWidth: '80%' }}>
-                        <View style={[
-                            styles.msgBubble,
-                            { backgroundColor: msg.sender === 'me' ? colors.primary : colors.bgCard }
-                        ]}>
-                            <Text style={{ color: colors.text }}>{msg.text}</Text>
-                            <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 4, textAlign: 'right' }}>{msg.time}</Text>
-                        </View>
-                    </View>
-                ))}
-            </ScrollView>
-
-            <View style={styles.chatInputContainer}>
-                <TextInput
-                    style={[styles.input, { marginBottom: 0, flex: 1, marginRight: 10 }]}
-                    value={message}
-                    onChangeText={setMessage}
-                    placeholder="Type a message..."
-                    placeholderTextColor="#666"
-                />
-                <TouchableOpacity style={{ backgroundColor: colors.primary, padding: 12, borderRadius: 12 }}>
-                    <Send size={24} color="#fff" />
-                </TouchableOpacity>
-            </View>
-        </KeyboardAvoidingView>
-    );
-};
-
-const AddContactsScreen = ({ navigate }) => (
-    <View style={styles.screen}>
-        <Header title="Add Contacts" onBack={() => navigate('home')} />
-        <View style={{ padding: 20, alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-            <Card>
-                <View style={{ alignItems: 'center', padding: 20 }}>
-                    <Users size={48} color={colors.primary} />
-                    <Text style={[styles.h2, { marginTop: 20, marginBottom: 10 }]}>Connect Friends</Text>
-                    <Text style={{ color: colors.textMuted, textAlign: 'center', marginBottom: 20 }}>
-                        Find people you know who are already on Orbit.
-                    </Text>
-                    <Button icon={Users} onClick={() => alert('Access requested')}>Allow Access</Button>
-                </View>
-            </Card>
-        </View>
-    </View>
-);
-
-// --- Main App Component ---
-export default function OrbitApp() {
-    const [currentScreen, setCurrentScreen] = useState('login');
-    const [user, setUser] = useState(mockUser);
+    // Selection State
+    const [selectedWave, setSelectedWave] = useState(null);
     const [selectedChat, setSelectedChat] = useState(null);
-    const [showProfilePopup, setShowProfilePopup] = useState(null);
-    const [profileData, setProfileData] = useState({ name: '', pronouns: '', bio: '', avatar: '👤' });
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [previewProfile, setPreviewProfile] = useState(null);
 
-    const navigate = (screen, data = null) => {
-        if (data) setSelectedChat(data);
-        setCurrentScreen(screen);
+    // --- Handlers ---
+
+    const handleLogin = (phone) => {
+        setUser({ ...user, phone });
+        setScreen('createProfile');
     };
 
-    const handleCompleteProfile = () => {
-        setUser({ ...user, ...profileData, id: '1' });
-        navigate('home');
+    const handleProfileComplete = (data) => {
+        setUser({ ...user, ...data });
+        setScreen('main');
     };
 
-    const toggleDiscovery = () => {
+    const handleProfileUpdate = (data) => {
+        setUser({ ...user, ...data });
+        setScreen('main'); // Return to main after edit
+    };
+
+    const handleToggleDiscovery = () => {
         const newState = !user.isLookingForFriends;
         setUser({ ...user, isLookingForFriends: newState });
 
-        if (newState) {
-            Alert.alert("Discovery Mode On", "Scanning for nearby users via Bluetooth Low Energy & Location...");
-        } else {
-            Alert.alert("Discovery Paused", "Stopped scanning.");
-        }
+        Alert.alert(
+            newState ? "Discovery Mode On" : "Discovery Mode Off",
+            newState
+                ? "Scanning for people nearby using Bluetooth."
+                : "You have turned off Discovery Mode."
+        );
     };
 
-    // --- Router ---
-    const renderScreen = () => {
-        switch (currentScreen) {
+    const handleWaveAction = (waveUser) => {
+        if (!waveUser) return;
+
+        // Prevent duplicate waves (logic check, though UI should also disable it)
+        if (wavedUserIds.includes(waveUser.id)) return;
+
+        setWavedUserIds([...wavedUserIds, waveUser.id]);
+        Alert.alert("Wave Sent!", `You waved at ${waveUser.name}`);
+    };
+
+    // --- Render Logic ---
+
+    const renderContent = () => {
+        switch (screen) {
             case 'login':
-                return <LoginScreen
-                    navigate={navigate}
-                    phoneNumber={phoneNumber}
-                    setPhoneNumber={setPhoneNumber}
-                />;
+                return <LoginScreen onLogin={handleLogin} />;
+
             case 'createProfile':
-                return <CreateProfileScreen
-                    navigate={navigate}
-                    profileData={profileData}
-                    setProfileData={setProfileData}
-                    completeProfile={handleCompleteProfile}
-                />;
-            case 'home':
-                return <HomeScreen
-                    navigate={navigate}
-                    user={user}
-                    toggleDiscovery={toggleDiscovery}
-                    setShowProfilePopup={setShowProfilePopup}
-                />;
-            case 'waveList':
-                return <WaveListScreen navigate={navigate} />;
+                return (
+                    <CreateProfileScreen
+                        onComplete={handleProfileComplete}
+                        onBack={() => setScreen('login')}
+                    />
+                );
+
+            case 'editProfile':
+                return (
+                    <EditProfileScreen
+                        user={user}
+                        onSave={handleProfileUpdate}
+                        onCancel={() => setScreen('main')}
+                    />
+                );
+
             case 'waveDetail':
-                return <WaveDetailScreen navigate={navigate} selectedChat={selectedChat} />;
-            case 'chat':
-                return <ChatScreen
-                    navigate={navigate}
-                    selectedChat={selectedChat}
-                    setShowProfilePopup={setShowProfilePopup}
-                />;
-            case 'addContacts':
-                return <AddContactsScreen navigate={navigate} />;
+                return (
+                    <WaveDetailScreen
+                        wave={selectedWave}
+                        onBack={() => setScreen('main')}
+                        onWave={() => handleWaveAction(selectedWave)}
+                        hasWaved={wavedUserIds.includes(selectedWave?.id)}
+                    />
+                );
+
+            case 'chatDetail':
+                return (
+                    <ChatDetailScreen
+                        chat={selectedChat}
+                        onBack={() => setScreen('main')}
+                        onProfilePress={() => setPreviewProfile(selectedChat)}
+                    />
+                );
+
+            case 'main':
             default:
-                return <HomeScreen navigate={navigate} user={user} />;
+                return (
+                    <SafeAreaView style={styles.container}>
+                        {/* Main Header */}
+                        <View style={styles.mainHeader}>
+                            <TouchableOpacity onPress={() => setScreen('editProfile')} style={styles.headerProfile}>
+                                <Avatar emoji={user.avatar} size="sm" />
+                                <View style={styles.headerTextContainer}>
+                                    <Text style={styles.greetingText}>Hello,</Text>
+                                    <Text style={styles.headerLogo}>{user.name || 'Orbit'}</Text>
+                                </View>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.iconButton}>
+                                <Plus size={24} color={colors.text} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Tab Content */}
+                        <View style={styles.contentContainer}>
+                            {activeTab === 'home' && (
+                                <HomeScreen
+                                    user={user}
+                                    onToggleDiscovery={handleToggleDiscovery}
+                                    onSelectWave={(wave) => { setSelectedWave(wave); setScreen('waveDetail'); }}
+                                />
+                            )}
+                            {activeTab === 'chats' && (
+                                <ChatScreen onSelectChat={(friend) => { setSelectedChat(friend); setScreen('chatDetail'); }} />
+                            )}
+                        </View>
+
+                        {/* Bottom Navigation */}
+                        <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+                    </SafeAreaView>
+                );
         }
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-            <StatusBar barStyle="light-content" />
-            {renderScreen()}
+        <View style={styles.root}>
+            <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
 
-            <Modal visible={!!showProfilePopup} transparent animationType="fade">
+            {/* Render the current screen */}
+            {renderContent()}
+
+            {/* Profile Preview Modal - Now lives at root so it overlays everything */}
+            <Modal visible={!!previewProfile} transparent animationType="fade">
                 <TouchableOpacity
                     style={styles.modalOverlay}
                     activeOpacity={1}
-                    onPress={() => setShowProfilePopup(null)}
+                    onPress={() => setPreviewProfile(null)}
                 >
-                    <View style={styles.modalContent}>
-                        <View style={{ alignItems: 'flex-end' }}>
-                            <TouchableOpacity onPress={() => setShowProfilePopup(null)}>
-                                <X size={24} color={colors.text} />
-                            </TouchableOpacity>
-                        </View>
-                        <View style={{ alignItems: 'center', marginBottom: 20 }}>
-                            <Avatar emoji={showProfilePopup?.avatar} size="xl" />
-                            <Text style={[styles.h1, { marginTop: 15 }]}>{showProfilePopup?.name}</Text>
-                            <Text style={{ color: colors.textMuted }}>{showProfilePopup?.pronouns}</Text>
-                            <Text style={{ color: colors.text, marginTop: 10, textAlign: 'center' }}>{showProfilePopup?.bio}</Text>
-                        </View>
+                    <View style={styles.previewCard}>
+                        <TouchableOpacity style={styles.closeBtn} onPress={() => setPreviewProfile(null)}>
+                            <View style={styles.closeBtnInner}>
+                                <X size={20} color={colors.text} />
+                            </View>
+                        </TouchableOpacity>
 
-                        {showProfilePopup?.id === user.id && (
-                            <Button onClick={() => {
-                                setShowProfilePopup(null);
-                                navigate('createProfile');
-                            }}>
-                                Edit Profile
+                        <View style={{ alignItems: 'center' }}>
+                            <Avatar emoji={previewProfile?.avatar} size="xl" />
+                            <Text style={[styles.h1, { marginTop: 16 }]}>{previewProfile?.name}</Text>
+                            <View style={styles.previewChip}>
+                                <Text style={styles.previewChipText}>{previewProfile?.pronouns}</Text>
+                            </View>
+                            <Text style={[styles.textMuted, { textAlign: 'center', marginBottom: 24, marginTop: 12, lineHeight: 20 }]}>
+                                {previewProfile?.bio || "No bio available"}
+                            </Text>
+
+                            <Button
+                                style={{ width: '100%' }}
+                                icon={MessageCircle}
+                                onClick={() => {
+                                    const target = previewProfile;
+                                    setPreviewProfile(null);
+                                    // Slight delay to allow modal to close smoothly before transition
+                                    setTimeout(() => {
+                                        setSelectedChat(target);
+                                        setScreen('chatDetail');
+                                    }, 100);
+                                }}
+                            >
+                                Message
                             </Button>
-                        )}
+                        </View>
                     </View>
                 </TouchableOpacity>
             </Modal>
-        </SafeAreaView>
+        </View>
     );
 }
 
-// --- Styles ---
 const styles = StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.bg },
-    h1: { fontSize: 28, fontWeight: 'bold', color: colors.text },
-    h2: { fontSize: 22, fontWeight: 'bold', color: colors.text },
-    h3: { fontSize: 16, fontWeight: 'bold', color: colors.text },
+    root: { flex: 1, backgroundColor: colors.bg },
+    container: { flex: 1, backgroundColor: colors.bg },
 
-    button: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        paddingVertical: 15, paddingHorizontal: 20, borderRadius: 16,
-        shadowColor: colors.primary, shadowOpacity: 0.3, shadowRadius: 5
+    // Header Styles
+    mainHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingTop: 16,
+        paddingBottom: 20,
+        backgroundColor: colors.bg,
     },
-    buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-
-    card: {
-        backgroundColor: colors.bgCard, padding: 20, borderRadius: 24,
-        shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 3
+    headerProfile: { flexDirection: 'row', alignItems: 'center' },
+    headerTextContainer: { marginLeft: 12 },
+    greetingText: { fontSize: 12, color: colors.textMuted, fontWeight: '500' },
+    headerLogo: { fontSize: 18, fontWeight: '700', color: colors.text },
+    iconButton: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: colors.bgCard,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: colors.border
     },
 
-    input: {
-        backgroundColor: colors.bgLight, color: colors.text,
-        padding: 15, borderRadius: 12, fontSize: 16, marginBottom: 15
+    contentContainer: {
+        flex: 1,
     },
-    label: { color: colors.textMuted, fontSize: 14, fontWeight: '600', marginBottom: 8 },
 
-    logoCircle: {
-        width: 100, height: 100, borderRadius: 50,
-        backgroundColor: colors.bgCard, alignItems: 'center', justifyContent: 'center', marginBottom: 20,
-        borderWidth: 2, borderColor: colors.primary
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20
     },
-    logoTitle: { fontSize: 42, fontWeight: 'bold', color: colors.text },
-    logoSubtitle: { fontSize: 16, color: colors.textMuted, marginTop: 5 },
-
-    headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, paddingTop: 10 },
-    headerTitle: { fontSize: 24, fontWeight: 'bold', color: colors.text, marginLeft: 15 },
-    backButton: { padding: 5 },
-
-    topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 },
-    iconBtn: { padding: 10, borderRadius: 12 },
-    sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 25, marginBottom: 15 },
-
-    avatarBase: { backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-    badge: {
-        position: 'absolute', bottom: -2, right: -2, backgroundColor: colors.success,
-        width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center'
+    previewCard: {
+        backgroundColor: colors.bgCard,
+        width: '100%',
+        maxWidth: 340,
+        borderRadius: 28,
+        padding: 24,
+        borderWidth: 1,
+        borderColor: colors.border
     },
-    badgeText: { color: '#fff', fontSize: 10, fontWeight: 'bold' },
+    closeBtn: { position: 'absolute', top: 16, right: 16, zIndex: 1 },
+    closeBtnInner: { backgroundColor: colors.bgLight, borderRadius: 12, padding: 6 },
+    previewChip: { backgroundColor: colors.bgLight, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, marginTop: 8 },
+    previewChipText: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
 
-    cameraButton: { position: 'relative' },
-    cameraOverlay: {
-        position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 50, alignItems: 'center', justifyContent: 'center'
-    },
-    iconBox: { width: 45, height: 45, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-
-    msgBubble: { padding: 15, borderRadius: 20 },
-    chatInputContainer: { padding: 20, borderTopWidth: 1, borderTopColor: colors.bgLight, flexDirection: 'row' },
-
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
-    modalContent: { backgroundColor: colors.bgCard, padding: 20, borderRadius: 24 }
+    // Typography
+    h1: { fontSize: 24, fontWeight: 'bold', color: colors.text },
+    textMuted: { color: colors.textMuted, fontSize: 14 },
 });
