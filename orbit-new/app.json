@@ -18,7 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "config": {
-        "googleMapsApiKey": "AIzaSyArkQyCSPCAkxmEuWp4nbvravf7B-bwgvI"
+        "googleMapsApiKey": "api-key"
       },
       "bundleIdentifier": "com.orbit.app"
     },
@@ -30,7 +30,7 @@
       "package": "com.orbit.app",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyArkQyCSPCAkxmEuWp4nbvravf7B-bwgvI"
+          "apiKey": "api-key"
         }
       }
     },
