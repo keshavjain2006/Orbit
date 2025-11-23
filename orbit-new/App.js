@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     StyleSheet,
     View,
@@ -29,21 +29,7 @@ import ChatDetailScreen from './screens/ChatDetailScreen';
 import { MOCK_USER } from './data/mockData';
 import { colors } from './styles/colors';
 
-// Services (Phase 3, 4 integration)
-import BluetoothService from './services/BluetoothService';
-import {
-    loginWithPhone,
-    createUserProfile,
-    sendWavePair,
-} from './services/supabase';
-
 export default function App() {
-    // Initialize BLE lifecycle once
-    useInitBluetooth();
-    // Optional: tune proximity heuristics (safe | instant)
-    useEffect(() => {
-        try { BluetoothService.setHeuristicsPreset('safe'); } catch {}
-    }, []);
     // Navigation State
     const [screen, setScreen] = useState('login'); // login, createProfile, main, waveDetail, chatDetail, editProfile
     const [activeTab, setActiveTab] = useState('home');
@@ -59,50 +45,14 @@ export default function App() {
 
     // --- Handlers ---
 
-    const handleLogin = async (phone) => {
-        try {
-            // Try to fetch an existing profile
-            const existingUser = await loginWithPhone(phone);
-            if (existingUser) {
-                setUser(existingUser);
-                setScreen('main');
-                // Start advertising if possible
-                if (existingUser.ble_uuid) {
-                    BluetoothService.startAdvertising(existingUser);
-                }
-            } else {
-                // New user flow → go create profile
-                setUser({ ...user, phone });
-                setScreen('createProfile');
-            }
-        } catch (e) {
-            // Fallback to local flow if backend is not available
-            setUser({ ...user, phone });
-            setScreen('createProfile');
-        }
+    const handleLogin = (phone) => {
+        setUser({ ...user, phone });
+        setScreen('createProfile');
     };
 
-    const handleProfileComplete = async (data) => {
-        try {
-            // Persist profile via Supabase and get BLE UUID back
-            const newUser = await createUserProfile(
-                user.phone,
-                data.name,
-                data.avatar,
-                data.bio,
-                data.pronouns
-            );
-            setUser(newUser);
-            setScreen('main');
-            if (newUser?.ble_uuid) {
-                BluetoothService.startAdvertising(newUser);
-            }
-        } catch (e) {
-            // Local fallback if Supabase is not configured
-            const fallback = { ...user, ...data };
-            setUser(fallback);
-            setScreen('main');
-        }
+    const handleProfileComplete = (data) => {
+        setUser({ ...user, ...data });
+        setScreen('main');
     };
 
     const handleProfileUpdate = (data) => {
@@ -120,37 +70,16 @@ export default function App() {
                 ? "Scanning for people nearby using Bluetooth."
                 : "You have turned off Discovery Mode."
         );
-
-        // Start/stop scanning
-        if (newState && user?.id) {
-            BluetoothService.startScanning(user.id);
-        } else {
-            BluetoothService.stopScanning();
-        }
     };
 
-    const handleWaveAction = async (waveUser) => {
+    const handleWaveAction = (waveUser) => {
         if (!waveUser) return;
-        if (!user?.id) {
-            Alert.alert('Not logged in', 'Please log in first.');
-            return;
-        }
+
         // Prevent duplicate waves (logic check, though UI should also disable it)
         if (wavedUserIds.includes(waveUser.id)) return;
 
-        try {
-            const { chatId } = await sendWavePair(user.id, waveUser.id);
-            setWavedUserIds([...wavedUserIds, waveUser.id]);
-            if (chatId) {
-                Alert.alert('It’s a match!', 'A chat has been opened.');
-                // Optionally navigate to chats tab
-                // setActiveTab('chats');
-            } else {
-                Alert.alert('Wave sent', `You waved at ${waveUser.name}.`);
-            }
-        } catch (e) {
-            Alert.alert('Wave failed', 'Please try again in a moment.');
-        }
+        setWavedUserIds([...wavedUserIds, waveUser.id]);
+        Alert.alert("Wave Sent!", `You waved at ${waveUser.name}`);
     };
 
     // --- Render Logic ---
@@ -200,8 +129,6 @@ export default function App() {
             default:
                 return (
                     <SafeAreaView style={styles.container}>
-                        {/* Init BLE lifecycle */}
-                        {/* Note: We initialize once at app mount below */}
                         {/* Main Header */}
                         <View style={styles.mainHeader}>
                             <TouchableOpacity onPress={() => setScreen('editProfile')} style={styles.headerProfile}>
@@ -289,17 +216,6 @@ export default function App() {
             </Modal>
         </View>
     );
-}
-
-// Initialize BLE on app mount/unmount
-// Note: Placed outside component would run at import; we keep within component via useEffect below.
-
-// Hook to init/destroy BLE service when App mounts
-export function useInitBluetooth() {
-    useEffect(() => {
-        BluetoothService.init();
-        return () => BluetoothService.destroy();
-    }, []);
 }
 
 const styles = StyleSheet.create({

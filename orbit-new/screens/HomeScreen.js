@@ -1,45 +1,12 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import { Wifi, ChevronRight } from 'lucide-react-native';
 import Avatar from '../components/Avatar';
 import { colors } from '../styles/colors';
 import { MOCK_WAVES } from '../data/mockData';
-import { getWaveableUsers } from '../services/supabase';
 
 const HomeScreen = ({ user, onToggleDiscovery, onSelectWave }) => {
-    const [waves, setWaves] = useState(MOCK_WAVES);
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        let mounted = true;
-        const load = async () => {
-            if (!user?.id) return;
-            setLoading(true);
-            try {
-                const data = await getWaveableUsers(user.id);
-                if (!mounted) return;
-                // Normalize fields to fit UI expectations
-                const normalized = (data || []).map((it) => ({
-                    id: it.id || it.user_id || it.uuid || Math.random().toString(36).slice(2),
-                    name: it.name,
-                    pronouns: it.pronouns,
-                    bio: it.bio,
-                    avatar: it.avatar || '👤',
-                    encounters: it.encounter_count ?? it.encounters ?? 3,
-                    locations: it.locations || [],
-                }));
-                setWaves(normalized.length ? normalized : MOCK_WAVES);
-            } catch (e) {
-                setWaves(MOCK_WAVES);
-            } finally {
-                setLoading(false);
-            }
-        };
-        load();
-        return () => { mounted = false; };
-    }, [user?.id]);
-
     return (
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             {/* Greeting Section */}
@@ -75,7 +42,7 @@ const HomeScreen = ({ user, onToggleDiscovery, onSelectWave }) => {
                 <Text style={styles.h2}>Nearby Waves</Text>
             </View>
 
-            {(waves || []).map(wave => (
+            {MOCK_WAVES.map(wave => (
                 <TouchableOpacity
                     key={wave.id}
                     style={styles.waveCard}

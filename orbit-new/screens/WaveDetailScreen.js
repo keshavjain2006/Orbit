@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { ArrowLeft, Send, Check } from 'lucide-react-native';
 import Button from '../components/Button';
-import EncounterMap from '../components/EncounterMap';
 import Avatar from '../components/Avatar';
 import { colors } from '../styles/colors';
 
@@ -31,13 +30,6 @@ const WaveDetailScreen = ({ wave, onBack, onWave, hasWaved }) => {
                     <Text style={styles.statLabel}>Encounters</Text>
                     <Text style={styles.statValue}>{wave?.encounters}</Text>
                 </View>
-
-                {/* Map of encounter locations (if available) */}
-                {!!wave?.locations?.length && (
-                    <View style={{ width: '100%', marginTop: 16 }}>
-                        <EncounterMap locations={wave.locations} />
-                    </View>
-                )}
 
                 <Button
                     style={{ width: '100%', marginTop: 32 }}
