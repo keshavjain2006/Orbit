@@ -1,21 +1,57 @@
-import React, { useState } from 'react';
-import { Camera, Users, Wifi, WifiOff, Send, ArrowLeft, Plus, X, MessageCircle, Check, User, Phone, Mail } from 'lucide-react';
+// Orbit - Proximity Social App (React Native)
+// This is the complete React Native implementation
+// Install dependencies: npm install @react-navigation/native @react-navigation/stack lucide-react-native
 
-// Color Palette
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    ScrollView,
+    StyleSheet,
+    SafeAreaView,
+    Modal,
+    KeyboardAvoidingView,
+    Platform,
+    StatusBar,
+} from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import {
+    Camera,
+    Users,
+    Wifi,
+    WifiOff,
+    Send,
+    ArrowLeft,
+    Plus,
+    X,
+    MessageCircle,
+    Check,
+    User,
+    Phone,
+    Mail
+} from 'lucide-react-native';
+
+const Stack = createStackNavigator();
+
+// ==================== COLOR PALETTE ====================
 const colors = {
-    primary: '#6366f1', // Indigo
-    secondary: '#8b5cf6', // Purple
-    accent: '#ec4899', // Pink
-    bg: '#0f172a', // Dark blue
+    primary: '#6366f1',
+    secondary: '#8b5cf6',
+    accent: '#ec4899',
+    bg: '#0f172a',
     bgLight: '#1e293b',
     bgCard: '#334155',
     text: '#f1f5f9',
     textMuted: '#94a3b8',
     success: '#10b981',
     warning: '#f59e0b',
+    border: '#475569',
 };
 
-// Mock Data
+// ==================== MOCK DATA ====================
 const mockUser = {
     id: '1',
     name: 'Alex Chen',
@@ -27,595 +63,1190 @@ const mockUser = {
 };
 
 const mockPotentialWaves = [
-    { id: '2', name: 'Jordan Smith', pronouns: 'she/her', bio: 'Designer & runner 🏃‍♀️', avatar: '👩', encounters: 3, hasWavedAtYou: false },
-    { id: '3', name: 'Sam Rodriguez', pronouns: 'he/him', bio: 'Music lover 🎵', avatar: '👨', encounters: 4, hasWavedAtYou: true },
-    { id: '4', name: 'Taylor Kim', pronouns: 'they/them', bio: 'Foodie exploring the city', avatar: '🧑', encounters: 3, hasWavedAtYou: false },
+    {
+        id: '2',
+        name: 'Jordan Smith',
+        pronouns: 'she/her',
+        bio: 'Designer & runner 🏃‍♀️',
+        avatar: '👩',
+        encounters: 3,
+        hasWavedAtYou: false
+    },
+    {
+        id: '3',
+        name: 'Sam Rodriguez',
+        pronouns: 'he/him',
+        bio: 'Music lover 🎵',
+        avatar: '👨',
+        encounters: 4,
+        hasWavedAtYou: true
+    },
+    {
+        id: '4',
+        name: 'Taylor Kim',
+        pronouns: 'they/them',
+        bio: 'Foodie exploring the city',
+        avatar: '🧑',
+        encounters: 3,
+        hasWavedAtYou: false
+    },
 ];
 
 const mockFriends = [
-    { id: '5', name: 'Morgan Lee', avatar: '👩‍🦰', lastMessage: 'See you tomorrow!', timestamp: '2m ago', unread: 0 },
-    { id: '6', name: 'Casey Brown', avatar: '👨‍🦱', lastMessage: 'Thanks!', timestamp: '1h ago', unread: 2 },
-    { id: '7', name: 'Riley Davis', avatar: '🧑‍🦳', lastMessage: 'That was fun', timestamp: '3h ago', unread: 0 },
+    {
+        id: '5',
+        name: 'Morgan Lee',
+        avatar: '👩‍🦰',
+        lastMessage: 'See you tomorrow!',
+        timestamp: '2m ago',
+        unread: 0
+    },
+    {
+        id: '6',
+        name: 'Casey Brown',
+        avatar: '👨‍🦱',
+        lastMessage: 'Thanks!',
+        timestamp: '1h ago',
+        unread: 2
+    },
+    {
+        id: '7',
+        name: 'Riley Davis',
+        avatar: '🧑‍🦳',
+        lastMessage: 'That was fun',
+        timestamp: '3h ago',
+        unread: 0
+    },
 ];
 
-// Reusable Components
-const Button = ({ children, onClick, variant = 'primary', disabled = false, icon: Icon }) => {
-    const styles = {
-        primary: `bg-gradient-to-r from-[${colors.primary}] to-[${colors.secondary}]`,
-        secondary: `bg-[${colors.bgCard}] border-2 border-[${colors.primary}]`,
-        ghost: 'bg-transparent',
+const mockMessages = [
+    { id: 1, text: 'Hey! Nice to meet you', sender: 'them', time: '10:23 AM' },
+    { id: 2, text: 'Hi! How are you?', sender: 'me', time: '10:25 AM' },
+    { id: 3, text: 'Great! Love this app', sender: 'them', time: '10:27 AM' },
+];
+
+// ==================== REUSABLE COMPONENTS ====================
+
+// Custom Button Component
+const Button = ({ children, onPress, variant = 'primary', disabled = false, icon: Icon, style }) => {
+    const buttonStyles = [
+        styles.button,
+        variant === 'primary' && styles.buttonPrimary,
+        variant === 'secondary' && styles.buttonSecondary,
+        variant === 'ghost' && styles.buttonGhost,
+        disabled && styles.buttonDisabled,
+        style,
+    ];
+
+    return (
+        <TouchableOpacity
+            style={buttonStyles}
+            onPress={onPress}
+            disabled={disabled}
+            activeOpacity={0.8}
+        >
+            {Icon && <Icon size={20} color={colors.text} style={{ marginRight: 8 }} />}
+            <Text style={styles.buttonText}>{children}</Text>
+        </TouchableOpacity>
+    );
+};
+
+// Card Component
+const Card = ({ children, onPress, style }) => {
+    return (
+        <TouchableOpacity
+            style={[styles.card, style]}
+            onPress={onPress}
+            disabled={!onPress}
+            activeOpacity={onPress ? 0.7 : 1}
+        >
+            {children}
+        </TouchableOpacity>
+    );
+};
+
+// Avatar Component
+const Avatar = ({ emoji, size = 'md', badge }) => {
+    const sizeStyles = {
+        sm: { width: 40, height: 40, fontSize: 20 },
+        md: { width: 64, height: 64, fontSize: 32 },
+        lg: { width: 96, height: 96, fontSize: 48 },
+        xl: { width: 128, height: 128, fontSize: 64 },
     };
 
     return (
-        <button
-            onClick={onClick}
-            disabled={disabled}
-            className={`${styles[variant]} ${disabled ? 'opacity-50' : 'hover:opacity-90'} 
-        text-white font-semibold py-3 px-6 rounded-2xl transition-all duration-200 
-        flex items-center justify-center gap-2 shadow-lg`}
-            style={{
-                background: variant === 'primary'
-                    ? `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
-                    : variant === 'secondary'
-                        ? colors.bgCard
-                        : 'transparent'
-            }}
-        >
-            {Icon && <Icon size={20} />}
-            {children}
-        </button>
-    );
-};
-
-const Card = ({ children, className = '', onClick }) => (
-    <div
-        onClick={onClick}
-        className={`bg-[${colors.bgCard}] rounded-3xl p-5 shadow-xl transition-all duration-200 
-      ${onClick ? 'hover:scale-[1.02] cursor-pointer' : ''} ${className}`}
-        style={{ backgroundColor: colors.bgCard }}
-    >
-        {children}
-    </div>
-);
-
-const Avatar = ({ emoji, size = 'md', badge }) => {
-    const sizes = { sm: 'w-10 h-10 text-xl', md: 'w-16 h-16 text-3xl', lg: 'w-24 h-24 text-5xl', xl: 'w-32 h-32 text-6xl' };
-    return (
-        <div className="relative">
-            <div className={`${sizes[size]} rounded-full bg-gradient-to-br from-[${colors.primary}] to-[${colors.accent}] 
-        flex items-center justify-center shadow-lg`}
-                 style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})` }}
-            >
-                <span>{emoji}</span>
-            </div>
+        <View>
+            <View style={[styles.avatar, {
+                width: sizeStyles[size].width,
+                height: sizeStyles[size].height
+            }]}>
+                <Text style={{ fontSize: sizeStyles[size].fontSize }}>{emoji}</Text>
+            </View>
             {badge && (
-                <div className="absolute -bottom-1 -right-1 bg-[${colors.success}] rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
-                     style={{ backgroundColor: colors.success }}
-                >
-                    {badge}
-                </div>
+                <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{badge}</Text>
+                </View>
             )}
-        </div>
+        </View>
     );
 };
 
+// Header Component
 const Header = ({ title, onBack, rightElement }) => (
-    <div className="flex items-center justify-between mb-6 pt-4">
-        <div className="flex items-center gap-3">
+    <View style={styles.header}>
+        <View style={styles.headerLeft}>
             {onBack && (
-                <button onClick={onBack} className="p-2 hover:bg-[${colors.bgLight}] rounded-xl transition-colors"
-                        style={{ hover: { backgroundColor: colors.bgLight } }}
-                >
+                <TouchableOpacity onPress={onBack} style={styles.backButton}>
                     <ArrowLeft size={24} color={colors.text} />
-                </button>
+                </TouchableOpacity>
             )}
-            <h1 className="text-3xl font-bold" style={{ color: colors.text }}>{title}</h1>
-        </div>
+            <Text style={styles.headerTitle}>{title}</Text>
+        </View>
         {rightElement}
-    </div>
+    </View>
 );
 
-// Main App Component
-const OrbitApp = () => {
-    const [currentScreen, setCurrentScreen] = useState('login');
-    const [user, setUser] = useState(mockUser);
-    const [selectedChat, setSelectedChat] = useState(null);
-    const [showProfilePopup, setShowProfilePopup] = useState(null);
-    const [profileData, setProfileData] = useState({ name: '', pronouns: '', bio: '', avatar: '👤' });
+// ==================== SCREENS ====================
+
+// Login Screen
+const LoginScreen = ({ navigation }) => {
     const [phoneNumber, setPhoneNumber] = useState('');
 
-    // Navigation
-    const navigate = (screen, data = null) => {
-        if (data) setSelectedChat(data);
-        setCurrentScreen(screen);
+    return (
+        <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="light-content" />
+            <ScrollView contentContainerStyle={styles.loginContainer}>
+                <View style={styles.loginHeader}>
+                    <View style={styles.logoContainer}>
+                        <Text style={styles.logoEmoji}>🌍</Text>
+                    </View>
+                    <Text style={styles.logoText}>Orbit</Text>
+                    <Text style={styles.logoSubtext}>Connect with people nearby</Text>
+                </View>
+
+                <View style={styles.loginCard}>
+                    <View style={styles.inputContainer}>
+                        <Text style={styles.inputLabel}>Phone Number</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={phoneNumber}
+                            onChangeText={setPhoneNumber}
+                            placeholder="+1 (555) 000-0000"
+                            placeholderTextColor={colors.textMuted}
+                            keyboardType="phone-pad"
+                        />
+                    </View>
+
+                    <Button
+                        onPress={() => navigation.navigate('CreateProfile')}
+                        icon={Phone}
+                    >
+                        Continue with Phone
+                    </Button>
+
+                    <View style={styles.divider}>
+                        <View style={styles.dividerLine} />
+                        <Text style={styles.dividerText}>Or connect with</Text>
+                        <View style={styles.dividerLine} />
+                    </View>
+
+                    <View style={styles.socialButtons}>
+                        <Button variant="secondary" icon={Mail} style={{ flex: 1, marginRight: 8 }}>
+                            Google
+                        </Button>
+                        <Button variant="secondary" icon={User} style={{ flex: 1, marginLeft: 8 }}>
+                            Apple
+                        </Button>
+                    </View>
+                </View>
+
+                <Text style={styles.termsText}>
+                    By continuing, you agree to Orbit's Terms & Privacy
+                </Text>
+            </ScrollView>
+        </SafeAreaView>
+    );
+};
+
+// Create Profile Screen
+const CreateProfileScreen = ({ navigation }) => {
+    const [profileData, setProfileData] = useState({
+        name: '',
+        pronouns: '',
+        bio: '',
+        avatar: '👤',
+    });
+
+    // Placeholder: In real app, use react-native-image-picker
+    const handleImagePick = () => {
+        console.log('Open image picker');
+        // Import and use: import {launchImageLibrary} from 'react-native-image-picker';
     };
 
-    // Login Screen
-    const LoginScreen = () => (
-        <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: colors.bg }}>
-            <div className="w-full max-w-md">
-                <div className="text-center mb-12">
-                    <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br flex items-center justify-center text-5xl"
-                         style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})` }}
-                    >
-                        🌍
-                    </div>
-                    <h1 className="text-5xl font-bold mb-3" style={{ color: colors.text }}>Orbit</h1>
-                    <p className="text-lg" style={{ color: colors.textMuted }}>Connect with people nearby</p>
-                </div>
+    return (
+        <SafeAreaView style={styles.container}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+            >
+                <ScrollView>
+                    <Header title="Create Profile" onBack={() => navigation.goBack()} />
 
-                <Card>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-semibold mb-2" style={{ color: colors.textMuted }}>
-                                Phone Number
-                            </label>
-                            <input
-                                type="tel"
-                                value={phoneNumber}
-                                onChange={(e) => setPhoneNumber(e.target.value)}
-                                placeholder="+1 (555) 000-0000"
-                                className="w-full px-4 py-3 rounded-xl text-white outline-none focus:ring-2"
-                                style={{
-                                    backgroundColor: colors.bgLight,
-                                    focusRing: colors.primary
-                                }}
-                            />
-                        </div>
+                    <View style={styles.profileContainer}>
+                        <TouchableOpacity onPress={handleImagePick} style={styles.avatarPickerContainer}>
+                            <Avatar emoji={profileData.avatar} size="xl" />
+                            <View style={styles.avatarOverlay}>
+                                <Camera size={32} color={colors.text} />
+                            </View>
+                        </TouchableOpacity>
 
-                        <Button onClick={() => navigate('createProfile')} icon={Phone}>
-                            Continue with Phone
+                        <View style={styles.formCard}>
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Name *</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={profileData.name}
+                                    onChangeText={(text) => setProfileData({ ...profileData, name: text })}
+                                    placeholder="Your name"
+                                    placeholderTextColor={colors.textMuted}
+                                />
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Pronouns</Text>
+                                <View style={styles.pickerContainer}>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={profileData.pronouns}
+                                        onChangeText={(text) => setProfileData({ ...profileData, pronouns: text })}
+                                        placeholder="e.g., she/her, he/him, they/them"
+                                        placeholderTextColor={colors.textMuted}
+                                    />
+                                </View>
+                            </View>
+
+                            <View style={styles.inputContainer}>
+                                <Text style={styles.inputLabel}>Bio (Optional)</Text>
+                                <TextInput
+                                    style={[styles.input, styles.textArea]}
+                                    value={profileData.bio}
+                                    onChangeText={(text) => setProfileData({ ...profileData, bio: text })}
+                                    placeholder="Tell people about yourself..."
+                                    placeholderTextColor={colors.textMuted}
+                                    multiline
+                                    numberOfLines={3}
+                                />
+                            </View>
+                        </View>
+
+                        <Button
+                            onPress={() => navigation.navigate('Home')}
+                            disabled={!profileData.name}
+                            style={{ marginTop: 16 }}
+                        >
+                            Complete Profile
                         </Button>
-
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t" style={{ borderColor: colors.bgLight }}></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                <span className="px-4" style={{ backgroundColor: colors.bgCard, color: colors.textMuted }}>
-                  Or connect with
-                </span>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <Button variant="secondary" icon={Mail}>Google</Button>
-                            <Button variant="secondary" icon={User}>Apple</Button>
-                        </div>
-                    </div>
-                </Card>
-
-                <p className="text-center text-sm mt-6" style={{ color: colors.textMuted }}>
-                    By continuing, you agree to Orbit's Terms & Privacy
-                </p>
-            </div>
-        </div>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
+};
 
-    // Create Profile Screen
-    const CreateProfileScreen = () => (
-        <div className="min-h-screen p-6" style={{ backgroundColor: colors.bg }}>
-            <Header title="Create Profile" onBack={() => navigate('login')} />
+// Home Screen
+const HomeScreen = ({ navigation }) => {
+    const [user, setUser] = useState(mockUser);
+    const [showProfileModal, setShowProfileModal] = useState(false);
 
-            <div className="max-w-2xl mx-auto space-y-6">
-                <div className="flex justify-center mb-8">
-                    <button
-                        className="relative group"
-                        onClick={() => {/* Placeholder: Open image picker */}}
+    return (
+        <SafeAreaView style={styles.container}>
+            <ScrollView>
+                <View style={styles.homeHeader}>
+                    <View style={styles.homeHeaderLeft}>
+                        <TouchableOpacity onPress={() => setShowProfileModal(true)}>
+                            <Avatar emoji={user.avatar} size="md" />
+                        </TouchableOpacity>
+                        <View style={{ marginLeft: 16 }}>
+                            <Text style={styles.homeTitle}>Orbit</Text>
+                            <Text style={styles.homeSubtitle}>Discover nearby</Text>
+                        </View>
+                    </View>
+
+                    <TouchableOpacity
+                        style={[
+                            styles.discoveryButton,
+                            { backgroundColor: user.isLookingForFriends ? colors.success : colors.bgCard }
+                        ]}
+                        onPress={() => setUser({ ...user, isLookingForFriends: !user.isLookingForFriends })}
                     >
-                        <Avatar emoji={profileData.avatar} size="xl" />
-                        <div className="absolute inset-0 rounded-full bg-black bg-opacity-50 opacity-0 group-hover:opacity-100
-              transition-opacity flex items-center justify-center"
-                        >
-                            <Camera size={32} color="white" />
-                        </div>
-                    </button>
-                </div>
+                        {user.isLookingForFriends ?
+                            <Wifi size={24} color={colors.text} /> :
+                            <WifiOff size={24} color={colors.text} />
+                        }
+                    </TouchableOpacity>
+                </View>
 
-                <Card>
-                    <div className="space-y-5">
-                        <div>
-                            <label className="block text-sm font-semibold mb-2" style={{ color: colors.textMuted }}>
-                                Name *
-                            </label>
-                            <input
-                                type="text"
-                                value={profileData.name}
-                                onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                                placeholder="Your name"
-                                className="w-full px-4 py-3 rounded-xl text-white outline-none focus:ring-2"
-                                style={{ backgroundColor: colors.bgLight }}
-                            />
-                        </div>
+                <View style={styles.content}>
+                    {/* Discovery Status Card */}
+                    <Card style={{ marginBottom: 24 }}>
+                        <View style={styles.discoveryStatus}>
+                            <View style={[
+                                styles.discoveryIcon,
+                                { backgroundColor: user.isLookingForFriends ? colors.success : colors.bgLight }
+                            ]}>
+                                <Wifi size={24} color={colors.text} />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <Text style={styles.cardTitle}>Discovery Mode</Text>
+                                <Text style={styles.cardSubtitle}>
+                                    {user.isLookingForFriends ? 'Actively looking for friends' : 'Discovery paused'}
+                                </Text>
+                            </View>
+                        </View>
+                    </Card>
 
-                        <div>
-                            <label className="block text-sm font-semibold mb-2" style={{ color: colors.textMuted }}>
-                                Pronouns
-                            </label>
-                            <select
-                                value={profileData.pronouns}
-                                onChange={(e) => setProfileData({ ...profileData, pronouns: e.target.value })}
-                                className="w-full px-4 py-3 rounded-xl text-white outline-none focus:ring-2"
-                                style={{ backgroundColor: colors.bgLight }}
-                            >
-                                <option value="">Select pronouns</option>
-                                <option value="he/him">he/him</option>
-                                <option value="she/her">she/her</option>
-                                <option value="they/them">they/them</option>
-                                <option value="other">other</option>
-                            </select>
-                        </div>
+                    {/* Potential Waves Section */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>Potential Waves</Text>
+                            <TouchableOpacity onPress={() => navigation.navigate('WaveList')}>
+                                <Text style={styles.seeAllText}>See all</Text>
+                            </TouchableOpacity>
+                        </View>
 
-                        <div>
-                            <label className="block text-sm font-semibold mb-2" style={{ color: colors.textMuted }}>
-                                Bio (Optional)
-                            </label>
-                            <textarea
-                                value={profileData.bio}
-                                onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-                                placeholder="Tell people about yourself..."
-                                rows={3}
-                                className="w-full px-4 py-3 rounded-xl text-white outline-none focus:ring-2 resize-none"
-                                style={{ backgroundColor: colors.bgLight }}
-                            />
-                        </div>
-                    </div>
-                </Card>
-
-                <Button
-                    onClick={() => {
-                        setUser({ ...user, ...profileData });
-                        navigate('home');
-                    }}
-                    disabled={!profileData.name}
-                >
-                    Complete Profile
-                </Button>
-            </div>
-        </div>
-    );
-
-    // Home/Main Menu Screen
-    const HomeScreen = () => (
-        <div className="min-h-screen p-6" style={{ backgroundColor: colors.bg, color: colors.text }}>
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => setShowProfilePopup(user)}>
-                        <Avatar emoji={user.avatar} size="md" />
-                    </button>
-                    <div>
-                        <h1 className="text-3xl font-bold">Orbit</h1>
-                        <p style={{ color: colors.textMuted }}>Discover nearby</p>
-                    </div>
-                </div>
-
-                <button
-                    onClick={() => setUser({ ...user, isLookingForFriends: !user.isLookingForFriends })}
-                    className="p-3 rounded-2xl transition-all duration-200"
-                    style={{
-                        backgroundColor: user.isLookingForFriends ? colors.success : colors.bgCard
-                    }}
-                >
-                    {user.isLookingForFriends ? <Wifi size={24} /> : <WifiOff size={24} />}
-                </button>
-            </div>
-
-            <div className="space-y-6">
-                {/* Discovery Status */}
-                <Card>
-                    <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-2xl ${user.isLookingForFriends ? 'animate-pulse' : ''}`}
-                             style={{ backgroundColor: user.isLookingForFriends ? colors.success : colors.bgLight }}
-                        >
-                            <Wifi size={24} color="white" />
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="font-semibold text-lg">Discovery Mode</h3>
-                            <p style={{ color: colors.textMuted }}>
-                                {user.isLookingForFriends ? 'Actively looking for friends' : 'Discovery paused'}
-                            </p>
-                        </div>
-                    </div>
-                </Card>
-
-                {/* Potential Waves */}
-                <div>
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-bold">Potential Waves</h2>
-                        <button onClick={() => navigate('waveList')} style={{ color: colors.primary }}>
-                            See all
-                        </button>
-                    </div>
-
-                    <div className="space-y-3">
                         {mockPotentialWaves.slice(0, 3).map(person => (
-                            <Card key={person.id} onClick={() => navigate('waveDetail', person)}>
-                                <div className="flex items-center gap-4">
+                            <Card
+                                key={person.id}
+                                onPress={() => navigation.navigate('WaveDetail', { person })}
+                                style={{ marginBottom: 12 }}
+                            >
+                                <View style={styles.personCard}>
                                     <Avatar emoji={person.avatar} size="md" badge={person.encounters} />
-                                    <div className="flex-1">
-                                        <h3 className="font-semibold text-lg">{person.name}</h3>
-                                        <p style={{ color: colors.textMuted }}>{person.pronouns}</p>
-                                    </div>
-                                    <div className="text-center">
-                                        <p className="text-sm font-semibold" style={{ color: colors.primary }}>
-                                            {person.encounters} encounters
-                                        </p>
-                                    </div>
-                                </div>
+                                    <View style={styles.personInfo}>
+                                        <Text style={styles.personName}>{person.name}</Text>
+                                        <Text style={styles.personPronouns}>{person.pronouns}</Text>
+                                    </View>
+                                    <View style={styles.encounterBadge}>
+                                        <Text style={styles.encounterText}>{person.encounters} encounters</Text>
+                                    </View>
+                                </View>
                             </Card>
                         ))}
-                    </div>
-                </div>
+                    </View>
 
-                {/* Friends */}
-                <div>
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-xl font-bold">Friends</h2>
-                        <button onClick={() => navigate('addContacts')} style={{ color: colors.primary }}>
-                            <Plus size={24} />
-                        </button>
-                    </div>
+                    {/* Friends Section */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>Friends</Text>
+                            <TouchableOpacity onPress={() => navigation.navigate('AddContacts')}>
+                                <Plus size={24} color={colors.primary} />
+                            </TouchableOpacity>
+                        </View>
 
-                    <div className="space-y-3">
                         {mockFriends.map(friend => (
-                            <Card key={friend.id} onClick={() => navigate('chat', friend)}>
-                                <div className="flex items-center gap-4">
+                            <Card
+                                key={friend.id}
+                                onPress={() => navigation.navigate('Chat', { friend })}
+                                style={{ marginBottom: 12 }}
+                            >
+                                <View style={styles.personCard}>
                                     <Avatar emoji={friend.avatar} size="md" badge={friend.unread > 0 ? friend.unread : null} />
-                                    <div className="flex-1 min-w-0">
-                                        <h3 className="font-semibold text-lg">{friend.name}</h3>
-                                        <p className="truncate" style={{ color: colors.textMuted }}>{friend.lastMessage}</p>
-                                    </div>
-                                    <span className="text-sm" style={{ color: colors.textMuted }}>{friend.timestamp}</span>
-                                </div>
+                                    <View style={styles.personInfo}>
+                                        <Text style={styles.personName}>{friend.name}</Text>
+                                        <Text style={styles.lastMessage} numberOfLines={1}>{friend.lastMessage}</Text>
+                                    </View>
+                                    <Text style={styles.timestamp}>{friend.timestamp}</Text>
+                                </View>
                             </Card>
                         ))}
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </View>
+                </View>
+            </ScrollView>
+
+            {/* Profile Modal */}
+            <Modal
+                visible={showProfileModal}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setShowProfileModal(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setShowProfileModal(false)}
+                >
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Profile</Text>
+                            <TouchableOpacity onPress={() => setShowProfileModal(false)}>
+                                <X size={24} color={colors.text} />
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.profileModalBody}>
+                            <Avatar emoji={user.avatar} size="xl" />
+                            <Text style={styles.profileModalName}>{user.name}</Text>
+                            <Text style={styles.profileModalPronouns}>{user.pronouns}</Text>
+                            {user.bio && <Text style={styles.profileModalBio}>{user.bio}</Text>}
+                        </View>
+
+                        <Button onPress={() => {
+                            setShowProfileModal(false);
+                            navigation.navigate('CreateProfile');
+                        }}>
+                            Edit Profile
+                        </Button>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+        </SafeAreaView>
     );
+};
 
-    // Wave List Screen
-    const WaveListScreen = () => (
-        <div className="min-h-screen p-6" style={{ backgroundColor: colors.bg, color: colors.text }}>
-            <Header title="Potential Waves" onBack={() => navigate('home')} />
+// Wave List Screen
+const WaveListScreen = ({ navigation }) => {
+    return (
+        <SafeAreaView style={styles.container}>
+            <ScrollView>
+                <Header title="Potential Waves" onBack={() => navigation.goBack()} />
 
-            <div className="space-y-3">
-                {mockPotentialWaves.map(person => (
-                    <Card key={person.id} onClick={() => navigate('waveDetail', person)}>
-                        <div className="flex items-center gap-4">
-                            <Avatar emoji={person.avatar} size="md" badge={person.encounters} />
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-lg">{person.name}</h3>
-                                <p style={{ color: colors.textMuted }}>{person.pronouns}</p>
-                                <p className="text-sm mt-1" style={{ color: colors.textMuted }}>{person.bio}</p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-sm font-semibold" style={{ color: colors.primary }}>
-                                    {person.encounters} encounters
-                                </p>
-                            </div>
-                        </div>
-                    </Card>
-                ))}
-            </div>
-        </div>
+                <View style={styles.content}>
+                    {mockPotentialWaves.map(person => (
+                        <Card
+                            key={person.id}
+                            onPress={() => navigation.navigate('WaveDetail', { person })}
+                            style={{ marginBottom: 12 }}
+                        >
+                            <View style={styles.personCard}>
+                                <Avatar emoji={person.avatar} size="md" badge={person.encounters} />
+                                <View style={styles.personInfo}>
+                                    <Text style={styles.personName}>{person.name}</Text>
+                                    <Text style={styles.personPronouns}>{person.pronouns}</Text>
+                                    <Text style={styles.personBio}>{person.bio}</Text>
+                                </View>
+                                <View style={styles.encounterBadge}>
+                                    <Text style={styles.encounterText}>{person.encounters} encounters</Text>
+                                </View>
+                            </View>
+                        </Card>
+                    ))}
+                </View>
+            </ScrollView>
+        </SafeAreaView>
     );
+};
 
-    // Wave Detail Screen
-    const WaveDetailScreen = () => {
-        const [hasWaved, setHasWaved] = useState(false);
+// Wave Detail Screen
+const WaveDetailScreen = ({ navigation, route }) => {
+    const { person } = route.params;
+    const [hasWaved, setHasWaved] = useState(false);
 
-        return (
-            <div className="min-h-screen p-6" style={{ backgroundColor: colors.bg, color: colors.text }}>
-                <Header title="Wave Detail" onBack={() => navigate('waveList')} />
+    return (
+        <SafeAreaView style={styles.container}>
+            <ScrollView>
+                <Header title="Wave Detail" onBack={() => navigation.goBack()} />
 
-                <div className="max-w-2xl mx-auto space-y-6">
-                    <div className="text-center">
-                        <div className="flex justify-center mb-6">
-                            <Avatar emoji={selectedChat?.avatar} size="xl" badge={selectedChat?.encounters} />
-                        </div>
-                        <h2 className="text-3xl font-bold mb-2">{selectedChat?.name}</h2>
-                        <p className="text-lg mb-4" style={{ color: colors.textMuted }}>{selectedChat?.pronouns}</p>
-                    </div>
+                <View style={styles.waveDetailContainer}>
+                    <View style={styles.waveDetailHeader}>
+                        <Avatar emoji={person.avatar} size="xl" badge={person.encounters} />
+                        <Text style={styles.waveDetailName}>{person.name}</Text>
+                        <Text style={styles.waveDetailPronouns}>{person.pronouns}</Text>
+                    </View>
 
-                    <Card>
-                        <p className="text-center text-lg">{selectedChat?.bio}</p>
+                    <Card style={{ marginBottom: 16 }}>
+                        <Text style={styles.waveDetailBio}>{person.bio}</Text>
                     </Card>
 
-                    <Card>
-                        <div className="text-center">
-                            <p className="text-sm mb-2" style={{ color: colors.textMuted }}>You've encountered each other</p>
-                            <p className="text-4xl font-bold" style={{ color: colors.primary }}>
-                                {selectedChat?.encounters} times
-                            </p>
-                        </div>
+                    <Card style={{ marginBottom: 24 }}>
+                        <View style={styles.encounterCard}>
+                            <Text style={styles.encounterLabel}>You've encountered each other</Text>
+                            <Text style={styles.encounterCount}>{person.encounters} times</Text>
+                        </View>
                     </Card>
 
                     {!hasWaved ? (
                         <Button
-                            onClick={() => {
+                            onPress={() => {
                                 setHasWaved(true);
                                 // Placeholder: API call to send wave
                             }}
                             icon={Send}
                         >
-                            Wave at {selectedChat?.name.split(' ')[0]}
+                            Wave at {person.name.split(' ')[0]}
                         </Button>
                     ) : (
                         <Card>
-                            <div className="text-center py-4">
-                                <Check size={48} color={colors.success} className="mx-auto mb-3" />
-                                <p className="text-lg font-semibold" style={{ color: colors.success }}>Wave sent!</p>
-                                <p style={{ color: colors.textMuted }}>
-                                    {selectedChat?.hasWavedAtYou
+                            <View style={styles.waveSuccessCard}>
+                                <Check size={48} color={colors.success} />
+                                <Text style={styles.waveSuccessTitle}>Wave sent!</Text>
+                                <Text style={styles.waveSuccessText}>
+                                    {person.hasWavedAtYou
                                         ? "You're now connected! Start chatting."
-                                        : `You'll be notified if ${selectedChat?.name.split(' ')[0]} waves back`
+                                        : `You'll be notified if ${person.name.split(' ')[0]} waves back`
                                     }
-                                </p>
-                            </div>
+                                </Text>
+                            </View>
                         </Card>
                     )}
-                </div>
-            </div>
-        );
-    };
-
-    // Chat Screen
-    const ChatScreen = () => {
-        const [message, setMessage] = useState('');
-        const messages = [
-            { id: 1, text: 'Hey! Nice to meet you', sender: 'them', time: '10:23 AM' },
-            { id: 2, text: 'Hi! How are you?', sender: 'me', time: '10:25 AM' },
-            { id: 3, text: 'Great! Love this app', sender: 'them', time: '10:27 AM' },
-        ];
-
-        return (
-            <div className="min-h-screen flex flex-col" style={{ backgroundColor: colors.bg }}>
-                <div className="p-6 border-b" style={{ borderColor: colors.bgLight }}>
-                    <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('home')}>
-                            <ArrowLeft size={24} color={colors.text} />
-                        </button>
-                        <button onClick={() => setShowProfilePopup(selectedChat)} className="flex items-center gap-3 flex-1">
-                            <Avatar emoji={selectedChat?.avatar} size="sm" />
-                            <h2 className="font-semibold text-lg" style={{ color: colors.text }}>{selectedChat?.name}</h2>
-                        </button>
-                    </div>
-                </div>
-
-                <div className="flex-1 p-6 space-y-4 overflow-y-auto">
-                    {messages.map(msg => (
-                        <div key={msg.id} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[70%] p-4 rounded-3xl ${
-                                msg.sender === 'me'
-                                    ? 'rounded-br-md'
-                                    : 'rounded-bl-md'
-                            }`}
-                                 style={{
-                                     backgroundColor: msg.sender === 'me' ? colors.primary : colors.bgCard,
-                                     color: colors.text
-                                 }}
-                            >
-                                <p>{msg.text}</p>
-                                <p className="text-xs mt-1 opacity-70">{msg.time}</p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="p-6 border-t" style={{ borderColor: colors.bgLight }}>
-                    <div className="flex gap-3">
-                        <input
-                            type="text"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            placeholder="Type a message..."
-                            className="flex-1 px-4 py-3 rounded-2xl outline-none"
-                            style={{ backgroundColor: colors.bgCard, color: colors.text }}
-                        />
-                        <button
-                            className="p-3 rounded-2xl transition-all"
-                            style={{ backgroundColor: colors.primary }}
-                            onClick={() => {
-                                if (message.trim()) {
-                                    // Placeholder: Send message
-                                    setMessage('');
-                                }
-                            }}
-                        >
-                            <Send size={24} color="white" />
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    // Add Contacts Screen
-    const AddContactsScreen = () => (
-        <div className="min-h-screen p-6" style={{ backgroundColor: colors.bg, color: colors.text }}>
-            <Header title="Add from Contacts" onBack={() => navigate('home')} />
-
-            <Card className="mb-6">
-                <div className="text-center py-6">
-                    <Users size={48} color={colors.primary} className="mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2">Connect with Friends</h3>
-                    <p style={{ color: colors.textMuted }} className="mb-6">
-                        Find people you know who are already on Orbit
-                    </p>
-                    <Button icon={Users}>
-                        Allow Contact Access
-                    </Button>
-                </div>
-            </Card>
-
-            <p className="text-sm text-center" style={{ color: colors.textMuted }}>
-                We'll only suggest people you don't already know well
-            </p>
-        </div>
-    );
-
-    // Profile Popup
-    const ProfilePopup = ({ person, onClose }) => (
-        <div
-            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-6 z-50"
-            onClick={onClose}
-        >
-            <div
-                className="w-full max-w-md rounded-3xl p-6"
-                style={{ backgroundColor: colors.bgCard }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex justify-between items-start mb-6">
-                    <h3 className="text-2xl font-bold" style={{ color: colors.text }}>Profile</h3>
-                    <button onClick={onClose}>
-                        <X size={24} color={colors.text} />
-                    </button>
-                </div>
-
-                <div className="text-center mb-6">
-                    <div className="flex justify-center mb-4">
-                        <Avatar emoji={person?.avatar} size="xl" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-2" style={{ color: colors.text }}>{person?.name}</h2>
-                    <p style={{ color: colors.textMuted }}>{person?.pronouns}</p>
-                    {person?.bio && (
-                        <p className="mt-4" style={{ color: colors.text }}>{person.bio}</p>
-                    )}
-                </div>
-
-                {person?.id === user.id && (
-                    <Button onClick={() => { onClose(); navigate('createProfile'); }}>
-                        Edit Profile
-                    </Button>
-                )}
-            </div>
-        </div>
-    );
-
-    // Screen Router
-    const renderScreen = () => {
-        switch (currentScreen) {
-            case 'login': return <LoginScreen />;
-            case 'createProfile': return <CreateProfileScreen />;
-            case 'home': return <HomeScreen />;
-            case 'waveList': return <WaveListScreen />;
-            case 'waveDetail': return <WaveDetailScreen />;
-            case 'chat': return <ChatScreen />;
-            case 'addContacts': return <AddContactsScreen />;
-            default: return <HomeScreen />;
-        }
-    };
-
-    return (
-        <div className="w-full h-screen overflow-auto">
-            {renderScreen()}
-            {showProfilePopup && (
-                <ProfilePopup person={showProfilePopup} onClose={() => setShowProfilePopup(null)} />
-            )}
-        </div>
+                </View>
+            </ScrollView>
+        </SafeAreaView>
     );
 };
 
-export default OrbitApp;
+// Chat Screen
+const ChatScreen = ({ navigation, route }) => {
+    const { friend } = route.params;
+    const [message, setMessage] = useState('');
+
+    return (
+        <SafeAreaView style={[styles.container, { flex: 1 }]}>
+            <View style={styles.chatHeader}>
+                <View style={styles.chatHeaderContent}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 12 }}>
+                        <ArrowLeft size={24} color={colors.text} />
+                    </TouchableOpacity>
+                    <Avatar emoji={friend.avatar} size="sm" />
+                    <Text style={styles.chatHeaderName}>{friend.name}</Text>
+                </View>
+            </View>
+
+            <ScrollView style={styles.chatMessages} contentContainerStyle={{ padding: 16 }}>
+                {mockMessages.map(msg => (
+                    <View
+                        key={msg.id}
+                        style={[
+                            styles.messageContainer,
+                            msg.sender === 'me' ? styles.messageContainerMe : styles.messageContainerThem
+                        ]}
+                    >
+                        <View style={[
+                            styles.messageBubble,
+                            msg.sender === 'me' ? styles.messageBubbleMe : styles.messageBubbleThem
+                        ]}>
+                            <Text style={styles.messageText}>{msg.text}</Text>
+                            <Text style={styles.messageTime}>{msg.time}</Text>
+                        </View>
+                    </View>
+                ))}
+            </ScrollView>
+
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+            >
+                <View style={styles.chatInput}>
+                    <TextInput
+                        style={styles.chatInputField}
+                        value={message}
+                        onChangeText={setMessage}
+                        placeholder="Type a message..."
+                        placeholderTextColor={colors.textMuted}
+                        multiline
+                    />
+                    <TouchableOpacity
+                        style={styles.sendButton}
+                        onPress={() => {
+                            if (message.trim()) {
+                                // Placeholder: Send message
+                                setMessage('');
+                            }
+                        }}
+                    >
+                        <Send size={24} color={colors.text} />
+                    </TouchableOpacity>
+                </View>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
+    );
+};
+
+// Add Contacts Screen
+const AddContactsScreen = ({ navigation }) => {
+    return (
+        <SafeAreaView style={styles.container}>
+            <ScrollView>
+                <Header title="Add from Contacts" onBack={() => navigation.goBack()} />
+
+                <View style={styles.content}>
+                    <Card>
+                        <View style={styles.contactsCard}>
+                            <Users size={48} color={colors.primary} />
+                            <Text style={styles.contactsTitle}>Connect with Friends</Text>
+                            <Text style={styles.contactsSubtitle}>
+                                Find people you know who are already on Orbit
+                            </Text>
+                            <Button icon={Users} style={{ marginTop: 16 }}>
+                                Allow Contact Access
+                            </Button>
+                        </View>
+                    </Card>
+
+                    <Text style={styles.contactsNote}>
+                        We'll only suggest people you don't already know well
+                    </Text>
+                </View>
+            </ScrollView>
+        </SafeAreaView>
+    );
+};
+
+// ==================== NAVIGATION ====================
+const AppNavigator = () => {
+    return (
+        <NavigationContainer>
+            <Stack.Navigator
+                screenOptions={{
+                    headerShown: false,
+                    cardStyle: { backgroundColor: colors.bg }
+                }}
+            >
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="CreateProfile" component={CreateProfileScreen} />
+                <Stack.Screen name="Home" component={HomeScreen} />
+                <Stack.Screen name="WaveList" component={WaveListScreen} />
+                <Stack.Screen name="WaveDetail" component={WaveDetailScreen} />
+                <Stack.Screen name="Chat" component={ChatScreen} />
+                <Stack.Screen name="AddContacts" component={AddContactsScreen} />
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
+};
+
+// ==================== STYLES ====================
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: colors.bg,
+    },
+
+    // Button Styles
+    button: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    buttonPrimary: {
+        backgroundColor: colors.primary,
+    },
+    buttonSecondary: {
+        backgroundColor: colors.bgCard,
+        borderWidth: 2,
+        borderColor: colors.primary,
+    },
+    buttonGhost: {
+        backgroundColor: 'transparent',
+    },
+    buttonDisabled: {
+        opacity: 0.5,
+    },
+    buttonText: {
+        color: colors.text,
+        fontSize: 16,
+        fontWeight: '600',
+    },
+
+    // Card Styles
+    card: {
+        backgroundColor: colors.bgCard,
+        borderRadius: 24,
+        padding: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+
+    // Avatar Styles
+    avatar: {
+        borderRadius: 999,
+        backgroundColor: colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    badge: {
+        position: 'absolute',
+        bottom: -4,
+        right: -4,
+        backgroundColor: colors.success,
+        borderRadius: 12,
+        width: 24,
+        height: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    badgeText: {
+        color: colors.text,
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+
+    // Header Styles
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingTop: 16,
+        paddingBottom: 16,
+    },
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    backButton: {
+        padding: 8,
+        marginRight: 12,
+    },
+    headerTitle: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: colors.text,
+    },
+
+    // Login Screen Styles
+    loginContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+    },
+    loginHeader: {
+        alignItems: 'center',
+        marginBottom: 48,
+    },
+    logoContainer: {
+        width: 96,
+        height: 96,
+        borderRadius: 48,
+        backgroundColor: colors.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    logoEmoji: {
+        fontSize: 48,
+    },
+    logoText: {
+        fontSize: 48,
+        fontWeight: 'bold',
+        color: colors.text,
+        marginBottom: 8,
+    },
+    logoSubtext: {
+        fontSize: 18,
+        color: colors.textMuted,
+    },
+    loginCard: {
+        backgroundColor: colors.bgCard,
+        borderRadius: 24,
+        padding: 24,
+        marginBottom: 24,
+    },
+    inputContainer: {
+        marginBottom: 20,
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: colors.textMuted,
+        marginBottom: 8,
+    },
+    input: {
+        backgroundColor: colors.bgLight,
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        fontSize: 16,
+        color: colors.text,
+    },
+    textArea: {
+        minHeight: 80,
+        textAlignVertical: 'top',
+    },
+    divider: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 24,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: colors.bgLight,
+    },
+    dividerText: {
+        color: colors.textMuted,
+        paddingHorizontal: 16,
+        fontSize: 14,
+    },
+    socialButtons: {
+        flexDirection: 'row',
+    },
+    termsText: {
+        textAlign: 'center',
+        fontSize: 12,
+        color: colors.textMuted,
+    },
+
+    // Profile Screen Styles
+    profileContainer: {
+        paddingHorizontal: 24,
+    },
+    avatarPickerContainer: {
+        alignItems: 'center',
+        marginVertical: 32,
+    },
+    avatarOverlay: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        borderRadius: 999,
+        padding: 12,
+    },
+    formCard: {
+        backgroundColor: colors.bgCard,
+        borderRadius: 24,
+        padding: 20,
+        marginBottom: 16,
+    },
+    pickerContainer: {
+        backgroundColor: colors.bgLight,
+        borderRadius: 12,
+    },
+
+    // Home Screen Styles
+    homeHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+        paddingTop: 16,
+        paddingBottom: 16,
+    },
+    homeHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    homeTitle: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: colors.text,
+    },
+    homeSubtitle: {
+        fontSize: 14,
+        color: colors.textMuted,
+    },
+    discoveryButton: {
+        padding: 12,
+        borderRadius: 16,
+    },
+    content: {
+        paddingHorizontal: 24,
+    },
+    discoveryStatus: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    discoveryIcon: {
+        padding: 12,
+        borderRadius: 16,
+        marginRight: 16,
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: colors.text,
+        marginBottom: 4,
+    },
+    cardSubtitle: {
+        fontSize: 14,
+        color: colors.textMuted,
+    },
+
+    // Section Styles
+    section: {
+        marginBottom: 32,
+    },
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: colors.text,
+    },
+    seeAllText: {
+        fontSize: 14,
+        color: colors.primary,
+        fontWeight: '600',
+    },
+
+    // Person Card Styles
+    personCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    personInfo: {
+        flex: 1,
+        marginLeft: 16,
+    },
+    personName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: colors.text,
+        marginBottom: 4,
+    },
+    personPronouns: {
+        fontSize: 14,
+        color: colors.textMuted,
+    },
+    personBio: {
+        fontSize: 14,
+        color: colors.textMuted,
+        marginTop: 4,
+    },
+    lastMessage: {
+        fontSize: 14,
+        color: colors.textMuted,
+    },
+    timestamp: {
+        fontSize: 12,
+        color: colors.textMuted,
+    },
+    encounterBadge: {
+        alignItems: 'flex-end',
+    },
+    encounterText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: colors.primary,
+    },
+
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 24,
+    },
+    modalContent: {
+        backgroundColor: colors.bgCard,
+        borderRadius: 24,
+        padding: 24,
+        width: '100%',
+        maxWidth: 400,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: colors.text,
+    },
+    profileModalBody: {
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    profileModalName: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: colors.text,
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    profileModalPronouns: {
+        fontSize: 16,
+        color: colors.textMuted,
+        marginBottom: 8,
+    },
+    profileModalBio: {
+        fontSize: 16,
+        color: colors.text,
+        textAlign: 'center',
+        marginTop: 16,
+    },
+
+    // Wave Detail Styles
+    waveDetailContainer: {
+        paddingHorizontal: 24,
+    },
+    waveDetailHeader: {
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    waveDetailName: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: colors.text,
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    waveDetailPronouns: {
+        fontSize: 18,
+        color: colors.textMuted,
+    },
+    waveDetailBio: {
+        fontSize: 16,
+        color: colors.text,
+        textAlign: 'center',
+    },
+    encounterCard: {
+        alignItems: 'center',
+        paddingVertical: 16,
+    },
+    encounterLabel: {
+        fontSize: 14,
+        color: colors.textMuted,
+        marginBottom: 8,
+    },
+    encounterCount: {
+        fontSize: 36,
+        fontWeight: 'bold',
+        color: colors.primary,
+    },
+    waveSuccessCard: {
+        alignItems: 'center',
+        paddingVertical: 24,
+    },
+    waveSuccessTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: colors.success,
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    waveSuccessText: {
+        fontSize: 14,
+        color: colors.textMuted,
+        textAlign: 'center',
+    },
+
+    // Chat Screen Styles
+    chatHeader: {
+        backgroundColor: colors.bgCard,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.bgLight,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    chatHeaderContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    chatHeaderName: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: colors.text,
+        marginLeft: 12,
+    },
+    chatMessages: {
+        flex: 1,
+        backgroundColor: colors.bg,
+    },
+    messageContainer: {
+        marginBottom: 16,
+        maxWidth: '70%',
+    },
+    messageContainerMe: {
+        alignSelf: 'flex-end',
+    },
+    messageContainerThem: {
+        alignSelf: 'flex-start',
+    },
+    messageBubble: {
+        padding: 12,
+        borderRadius: 20,
+    },
+    messageBubbleMe: {
+        backgroundColor: colors.primary,
+        borderBottomRightRadius: 4,
+    },
+    messageBubbleThem: {
+        backgroundColor: colors.bgCard,
+        borderBottomLeftRadius: 4,
+    },
+    messageText: {
+        fontSize: 16,
+        color: colors.text,
+        marginBottom: 4,
+    },
+    messageTime: {
+        fontSize: 12,
+        color: colors.text,
+        opacity: 0.7,
+    },
+    chatInput: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.bgCard,
+        borderTopWidth: 1,
+        borderTopColor: colors.bgLight,
+    },
+    chatInputField: {
+        flex: 1,
+        backgroundColor: colors.bgLight,
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        fontSize: 16,
+        color: colors.text,
+        maxHeight: 100,
+    },
+    sendButton: {
+        marginLeft: 12,
+        backgroundColor: colors.primary,
+        padding: 12,
+        borderRadius: 20,
+    },
+
+    // Contacts Screen Styles
+    contactsCard: {
+        alignItems: 'center',
+        paddingVertical: 24,
+    },
+    contactsTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: colors.text,
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    contactsSubtitle: {
+        fontSize: 14,
+        color: colors.textMuted,
+        textAlign: 'center',
+    },
+    contactsNote: {
+        fontSize: 12,
+        color: colors.textMuted,
+        textAlign: 'center',
+        marginTop: 24,
+    },
+});
+
+// ==================== MAIN APP EXPORT ====================
+export default AppNavigator;
