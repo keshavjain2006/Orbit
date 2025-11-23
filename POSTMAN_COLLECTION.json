@@ -1,0 +1,237 @@
+{
+  "info": {
+    "name": "Orbit API",
+    "description": "Complete API collection for Orbit proximity app",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "alice_id",
+      "value": "d5f15c2e-2245-43b9-b163-4fdeec551c7c",
+      "type": "string"
+    },
+    {
+      "key": "bob_id",
+      "value": "b743e1ff-f5e7-4133-9bab-17272b287f2e",
+      "type": "string"
+    },
+    {
+      "key": "conversation_id",
+      "value": "621f653b-6104-43e6-8f76-092db00576a6",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Encounters",
+      "item": [
+        {
+          "name": "Record Encounter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user1Id\": \"{{alice_id}}\",\n  \"user2Id\": \"{{bob_id}}\",\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/encounters",
+              "host": ["{{base_url}}"],
+              "path": ["api", "encounters"]
+            }
+          }
+        },
+        {
+          "name": "Get User Encounters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/encounters?userId={{alice_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "encounters"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{alice_id}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Connection Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/encounters/check-requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "encounters", "check-requests"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Connections",
+      "item": [
+        {
+          "name": "Create Connection Requests",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/connections/create-requests",
+              "host": ["{{base_url}}"],
+              "path": ["api", "connections", "create-requests"]
+            }
+          }
+        },
+        {
+          "name": "Get User Connections",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/connections/user/{{alice_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "connections", "user", "{{alice_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Requests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/connections/pending/{{bob_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "connections", "pending", "{{bob_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Respond to Connection Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{bob_id}}\",\n  \"accept\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/connections/requests/:requestId/respond",
+              "host": ["{{base_url}}"],
+              "path": ["api", "connections", "requests", ":requestId", "respond"],
+              "variable": [
+                {
+                  "key": "requestId",
+                  "value": "REPLACE_WITH_ACTUAL_REQUEST_ID"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversationId\": \"{{conversation_id}}\",\n  \"senderId\": \"{{bob_id}}\",\n  \"content\": \"Hello from Postman! Testing the API!\",\n  \"messageType\": \"text\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/messages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "messages"]
+            }
+          }
+        },
+        {
+          "name": "Get Conversation Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/messages/conversation/{{conversation_id}}?limit=50&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["api", "messages", "conversation", "{{conversation_id}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Messages as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{alice_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/messages/conversation/{{conversation_id}}/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "messages", "conversation", "{{conversation_id}}", "read"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+

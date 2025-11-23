@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @db.VarChar(255)
+  pronouns    String?  @db.VarChar(50)
+  bio         String?  @db.Text
+  photoUrl    String?  @map("photo_url") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastSeenAt  DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  isActive    Boolean  @default(true) @map("is_active")
+  connectionRequestsAsRequested ConnectionRequest[] @relation("RequestedRequests")
+  connectionRequestsAsRequester ConnectionRequest[] @relation("RequesterRequests")
+  connectionsAsUser1            Connection[]        @relation("User1Connections")
+  connectionsAsUser2            Connection[]        @relation("User2Connections")
+  encountersAsUser1             Encounter[]         @relation("User1Encounters")
+  encountersAsUser2             Encounter[]         @relation("User2Encounters")
+  sentMessages                  Message[]
+
+  @@index([lastSeenAt(sort: Desc)], map: "idx_users_last_seen")
+  @@map("users")
+}
+
+model Encounter {
+  id            String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user1Id       String    @map("user1_id") @db.Uuid
+  user2Id       String    @map("user2_id") @db.Uuid
+  encounteredAt DateTime? @default(now()) @map("encountered_at") @db.Timestamptz(6)
+  latitude      Decimal?  @db.Decimal(10, 8)
+  longitude     Decimal?  @db.Decimal(11, 8)
+  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  user1         User      @relation("User1Encounters", fields: [user1Id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user2         User      @relation("User2Encounters", fields: [user2Id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([encounteredAt(sort: Desc)], map: "idx_encounters_time")
+  @@index([user1Id, encounteredAt(sort: Desc)], map: "idx_encounters_user1")
+  @@index([user2Id, encounteredAt(sort: Desc)], map: "idx_encounters_user2")
+  @@index([encounteredAt(sort: Desc), user1Id, user2Id], map: "idx_encounters_user_time_window")
+  @@index([user1Id, user2Id, encounteredAt(sort: Desc)], map: "idx_encounters_users")
+  @@map("encounters")
+}
+
+model ConnectionRequest {
+  id                  String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  requesterId         String       @map("requester_id") @db.Uuid
+  requestedId         String       @map("requested_id") @db.Uuid
+  status              String       @default("pending") @db.VarChar(20)
+  createdAt           DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
+  expiresAt           DateTime?    @map("expires_at") @db.Timestamptz(6)
+  requesterAcceptedAt DateTime?    @map("requester_accepted_at") @db.Timestamptz(6)
+  requestedAcceptedAt DateTime?    @map("requested_accepted_at") @db.Timestamptz(6)
+  requested           User         @relation("RequestedRequests", fields: [requestedId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  requester           User         @relation("RequesterRequests", fields: [requesterId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  connections         Connection[]
+
+  @@index([requesterId, requestedId, status], map: "idx_requests_pair")
+  @@index([requestedId, status, createdAt(sort: Desc)], map: "idx_requests_requested")
+  @@index([requesterId, status, createdAt(sort: Desc)], map: "idx_requests_requester")
+  @@map("connection_requests")
+}
+
+model Connection {
+  id                  String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user1Id             String             @map("user1_id") @db.Uuid
+  user2Id             String             @map("user2_id") @db.Uuid
+  connectionRequestId String?            @map("connection_request_id") @db.Uuid
+  connectedAt         DateTime?          @default(now()) @map("connected_at") @db.Timestamptz(6)
+  isActive            Boolean?           @default(true) @map("is_active")
+  connectionRequest   ConnectionRequest? @relation(fields: [connectionRequestId], references: [id], onUpdate: NoAction)
+  user1               User               @relation("User1Connections", fields: [user1Id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user2               User               @relation("User2Connections", fields: [user2Id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  conversation        Conversation?
+
+  @@unique([user1Id, user2Id], map: "unique_connection")
+  @@map("connections")
+}
+
+/// This model contains an index with non-default null sort order and requires additional setup for migrations. Visit https://pris.ly/d/default-index-null-ordering for more info.
+model Conversation {
+  id                 String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  connectionId       String     @unique(map: "unique_conversation_per_connection") @map("connection_id") @db.Uuid
+  createdAt          DateTime?  @default(now()) @map("created_at") @db.Timestamptz(6)
+  lastMessageAt      DateTime?  @map("last_message_at") @db.Timestamptz(6)
+  lastMessagePreview String?    @map("last_message_preview")
+  connection         Connection @relation(fields: [connectionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  messages           Message[]
+
+  @@index([connectionId], map: "idx_conversations_connection")
+  @@index([lastMessageAt(sort: Desc)], map: "idx_conversations_recent")
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  conversationId String       @map("conversation_id") @db.Uuid
+  senderId       String       @map("sender_id") @db.Uuid
+  content        String
+  messageType    String?      @default("text") @map("message_type") @db.VarChar(20)
+  createdAt      DateTime?    @default(now()) @map("created_at") @db.Timestamptz(6)
+  readAt         DateTime?    @map("read_at") @db.Timestamptz(6)
+  editedAt       DateTime?    @map("edited_at") @db.Timestamptz(6)
+  deletedAt      DateTime?    @map("deleted_at") @db.Timestamptz(6)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([conversationId, createdAt(sort: Desc)], map: "idx_messages_conversation")
+  @@index([createdAt(sort: Desc)], map: "idx_messages_recent")
+  @@index([senderId, createdAt(sort: Desc)], map: "idx_messages_sender")
+  @@map("messages")
+}
