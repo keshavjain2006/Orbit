@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
@@ -13,11 +13,15 @@ import {
     StatusBar,
     Alert,
     TouchableWithoutFeedback,
-    Keyboard
+    Keyboard,
+    ActivityIndicator
 } from 'react-native';
 import {
     Camera, Users, Wifi, WifiOff, Send, ArrowLeft, Plus, X, Phone
 } from 'lucide-react-native';
+import api from './services/api';
+import userService from './services/userService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // --- Configuration ---
 const colors = {
@@ -155,7 +159,7 @@ const LoginScreen = ({ navigate, phoneNumber, setPhoneNumber }) => (
     </DismissKeyboard>
 );
 
-const CreateProfileScreen = ({ navigate, profileData, setProfileData, completeProfile }) => (
+const CreateProfileScreen = ({ navigate, profileData, setProfileData, completeProfile, isLoading = false }) => (
     <View style={styles.screen}>
         <Header title="Create Profile" onBack={() => navigate('login')} />
         <ScrollView
@@ -205,9 +209,9 @@ const CreateProfileScreen = ({ navigate, profileData, setProfileData, completePr
                     <View style={{ marginTop: 20 }}>
                         <Button
                             onClick={completeProfile}
-                            disabled={!profileData.name}
+                            disabled={!profileData.name || isLoading}
                         >
-                            Complete Profile
+                            {isLoading ? 'Creating Profile...' : 'Complete Profile'}
                         </Button>
                     </View>
                 </View>
@@ -216,7 +220,7 @@ const CreateProfileScreen = ({ navigate, profileData, setProfileData, completePr
     </View>
 );
 
-const HomeScreen = ({ navigate, user, toggleDiscovery, setShowProfilePopup }) => (
+const HomeScreen = ({ navigate, user, toggleDiscovery, setShowProfilePopup, potentialWaves, friends, loadingData }) => (
     <View style={styles.screen}>
         <View style={styles.topBar}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -258,7 +262,12 @@ const HomeScreen = ({ navigate, user, toggleDiscovery, setShowProfilePopup }) =>
                 </TouchableOpacity>
             </View>
 
-            {mockPotentialWaves.slice(0, 3).map(person => (
+            {loadingData ? (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                    <Text style={{ color: colors.textMuted }}>Loading...</Text>
+                </View>
+            ) : potentialWaves.length > 0 ? (
+                potentialWaves.slice(0, 3).map(person => (
                 <View key={person.id} style={{ marginBottom: 10 }}>
                     <Card onClick={() => navigate('waveDetail', person)}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -271,7 +280,12 @@ const HomeScreen = ({ navigate, user, toggleDiscovery, setShowProfilePopup }) =>
                         </View>
                     </Card>
                 </View>
-            ))}
+                ))
+            ) : (
+                <Card>
+                    <Text style={{ color: colors.textMuted, textAlign: 'center' }}>No potential waves yet. Meet people nearby!</Text>
+                </Card>
+            )}
 
             <View style={styles.sectionHeader}>
                 <Text style={styles.h2}>Friends</Text>
@@ -280,49 +294,92 @@ const HomeScreen = ({ navigate, user, toggleDiscovery, setShowProfilePopup }) =>
                 </TouchableOpacity>
             </View>
 
-            {mockFriends.map(friend => (
-                <View key={friend.id} style={{ marginBottom: 10 }}>
-                    <Card onClick={() => navigate('chat', friend)}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Avatar emoji={friend.avatar} size="md" badge={friend.unread || null} />
-                            <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.h3}>{friend.name}</Text>
-                                <Text style={{ color: colors.textMuted }} numberOfLines={1}>{friend.lastMessage}</Text>
-                            </View>
-                            <Text style={{ color: colors.textMuted, fontSize: 12 }}>{friend.timestamp}</Text>
-                        </View>
-                    </Card>
+            {loadingData ? (
+                <View style={{ padding: 20, alignItems: 'center' }}>
+                    <Text style={{ color: colors.textMuted }}>Loading...</Text>
                 </View>
-            ))}
+            ) : friends.length > 0 ? (
+                friends.map(friend => (
+                    <View key={friend.id} style={{ marginBottom: 10 }}>
+                        <Card onClick={() => navigate('chat', friend)}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Avatar emoji={friend.avatar} size="md" badge={friend.unread || null} />
+                                <View style={{ marginLeft: 12, flex: 1 }}>
+                                    <Text style={styles.h3}>{friend.name}</Text>
+                                    <Text style={{ color: colors.textMuted }} numberOfLines={1}>{friend.lastMessage}</Text>
+                                </View>
+                                <Text style={{ color: colors.textMuted, fontSize: 12 }}>{friend.timestamp}</Text>
+                            </View>
+                        </Card>
+                    </View>
+                ))
+            ) : (
+                <Card>
+                    <Text style={{ color: colors.textMuted, textAlign: 'center' }}>No connections yet. Start meeting people!</Text>
+                </Card>
+            )}
         </ScrollView>
     </View>
 );
 
-const WaveListScreen = ({ navigate }) => (
+const WaveListScreen = ({ navigate, potentialWaves }) => (
     <View style={styles.screen}>
         <Header title="Potential Waves" onBack={() => navigate('home')} />
         <ScrollView contentContainerStyle={{ padding: 20 }}>
-            {mockPotentialWaves.map(person => (
-                <View key={person.id} style={{ marginBottom: 12 }}>
-                    <Card onClick={() => navigate('waveDetail', person)}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <Avatar emoji={person.avatar} size="md" badge={person.encounters} />
-                            <View style={{ marginLeft: 12, flex: 1 }}>
-                                <Text style={styles.h3}>{person.name}</Text>
-                                <Text style={{ color: colors.textMuted }}>{person.pronouns}</Text>
-                                <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 4 }}>{person.bio}</Text>
+            {potentialWaves.length > 0 ? (
+                potentialWaves.map(person => (
+                    <View key={person.id} style={{ marginBottom: 12 }}>
+                        <Card onClick={() => navigate('waveDetail', person)}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Avatar emoji={person.avatar} size="md" badge={person.encounters} />
+                                <View style={{ marginLeft: 12, flex: 1 }}>
+                                    <Text style={styles.h3}>{person.name}</Text>
+                                    <Text style={{ color: colors.textMuted }}>{person.pronouns}</Text>
+                                    <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 4 }}>{person.bio}</Text>
+                                </View>
+                                <Text style={{ color: colors.primary, fontWeight: 'bold' }}>{person.encounters}x</Text>
                             </View>
-                            <Text style={{ color: colors.primary, fontWeight: 'bold' }}>{person.encounters}x</Text>
-                        </View>
-                    </Card>
-                </View>
-            ))}
+                        </Card>
+                    </View>
+                ))
+            ) : (
+                <Card>
+                    <Text style={{ color: colors.textMuted, textAlign: 'center' }}>No potential waves yet.</Text>
+                </Card>
+            )}
         </ScrollView>
     </View>
 );
 
-const WaveDetailScreen = ({ navigate, selectedChat }) => {
+const WaveDetailScreen = ({ navigate, selectedChat, user }) => {
     const [hasWaved, setHasWaved] = useState(false);
+    
+    const handleWave = async () => {
+        if (!user?.id || !selectedChat?.id) return;
+        
+        try {
+            // Step 1: Record an encounter between the two users
+            console.log('🌊 Recording encounter between', user.id, 'and', selectedChat.id);
+            await api.recordEncounter(user.id, selectedChat.id);
+            
+            // Step 2: Create connection requests for qualifying pairs (including this one if they now have 3+ encounters)
+            console.log('📨 Creating connection requests for qualifying pairs...');
+            const result = await api.createConnectionRequests();
+            
+            setHasWaved(true);
+            
+            // Check if a connection request was actually created
+            if (result.data && result.data.created > 0) {
+                Alert.alert("Wave Sent!", `Connection request created! They'll be notified if they wave back.`);
+            } else {
+                Alert.alert("Wave Sent!", "Encounter recorded! After 3 encounters, you'll be able to send a connection request.");
+            }
+        } catch (error) {
+            console.error('Error sending wave:', error);
+            Alert.alert("Error", "Failed to send wave. Please try again.");
+        }
+    };
+    
     return (
         <View style={styles.screen}>
             <Header title="Wave Detail" onBack={() => navigate('waveList')} />
@@ -344,7 +401,7 @@ const WaveDetailScreen = ({ navigate, selectedChat }) => {
 
                 <View style={{ width: '100%', marginTop: 30 }}>
                     {!hasWaved ? (
-                        <Button onClick={() => setHasWaved(true)} icon={Send}>
+                        <Button onClick={handleWave} icon={Send}>
                             Wave at {selectedChat?.name.split(' ')[0]}
                         </Button>
                     ) : (
@@ -444,15 +501,163 @@ export default function OrbitApp() {
     const [showProfilePopup, setShowProfilePopup] = useState(null);
     const [profileData, setProfileData] = useState({ name: '', pronouns: '', bio: '', avatar: '👤' });
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [potentialWaves, setPotentialWaves] = useState([]);
+    const [friends, setFriends] = useState([]);
+    const [loadingData, setLoadingData] = useState(false);
 
     const navigate = (screen, data = null) => {
         if (data) setSelectedChat(data);
         setCurrentScreen(screen);
     };
 
-    const handleCompleteProfile = () => {
-        setUser({ ...user, ...profileData, id: '1' });
-        navigate('home');
+    // Load home screen data (potential waves, friends)
+    const loadHomeData = async (userId) => {
+        if (!userId) return;
+        
+        setLoadingData(true);
+        try {
+            // Get potential waves (users with 3+ encounters)
+            try {
+                const wavesResponse = await api.request('/encounters/check-requests');
+                if (wavesResponse.success && wavesResponse.data && Array.isArray(wavesResponse.data)) {
+                    // Get user details for each potential wave
+                    const waves = [];
+                    for (const pair of wavesResponse.data) {
+                        // Backend returns camelCase: user1Id, user2Id
+                        const otherUserId = pair.user1Id === userId ? pair.user2Id : pair.user1Id;
+                        if (!otherUserId) continue;
+                        
+                        try {
+                            const userResponse = await api.request(`/users/${otherUserId}`);
+                            if (userResponse.success && userResponse.data) {
+                                waves.push({
+                                    id: userResponse.data.id,
+                                    name: userResponse.data.name,
+                                    pronouns: userResponse.data.pronouns || '',
+                                    bio: userResponse.data.bio || '',
+                                    avatar: '👤',
+                                    encounters: pair.encounterCount || 3,
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error fetching user:', e);
+                        }
+                    }
+                    setPotentialWaves(waves);
+                } else {
+                    setPotentialWaves([]);
+                }
+            } catch (wavesError) {
+                console.error('Error loading potential waves:', wavesError);
+                setPotentialWaves([]);
+            }
+
+            // Get connections (friends)
+            try {
+                const connectionsResponse = await api.request(`/connections/user/${userId}`);
+                if (connectionsResponse.success && connectionsResponse.data && Array.isArray(connectionsResponse.data)) {
+                    const friendsList = [];
+                    for (const conn of connectionsResponse.data) {
+                        const otherUserId = conn.user1Id === userId ? conn.user2Id : conn.user1Id;
+                        if (!otherUserId) continue;
+                        
+                        try {
+                            const userResponse = await api.request(`/users/${otherUserId}`);
+                            if (userResponse.success && userResponse.data) {
+                                // Get last message from conversation
+                                let lastMessage = 'No messages yet';
+                                if (conn.conversationId) {
+                                    try {
+                                        const messagesResponse = await api.request(`/messages/conversation/${conn.conversationId}?limit=1`);
+                                        if (messagesResponse.success && messagesResponse.data && messagesResponse.data.length > 0) {
+                                            lastMessage = messagesResponse.data[0].content;
+                                        }
+                                    } catch (e) {
+                                        // Ignore message errors
+                                    }
+                                }
+                                friendsList.push({
+                                    id: userResponse.data.id,
+                                    name: userResponse.data.name,
+                                    avatar: '👤',
+                                    lastMessage,
+                                    timestamp: 'Just now',
+                                    unread: 0,
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error fetching friend:', e);
+                        }
+                    }
+                    setFriends(friendsList);
+                } else {
+                    setFriends([]);
+                }
+            } catch (connectionsError) {
+                console.error('Error loading connections:', connectionsError);
+                setFriends([]);
+            }
+        } catch (error) {
+            console.error('Error loading home data:', error);
+            // Don't fallback to mock data - just show empty lists
+            setPotentialWaves([]);
+            setFriends([]);
+        } finally {
+            setLoadingData(false);
+        }
+    };
+
+    const handleCompleteProfile = async () => {
+        if (!profileData.name) {
+            Alert.alert("Error", "Name is required");
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            console.log('📝 Starting profile creation...');
+            
+            // Create user in database via API
+            const newUser = await userService.createProfile({
+                ...profileData,
+            });
+            
+            console.log('✅ Profile saved successfully:', newUser);
+            setUser({ ...newUser, isLookingForFriends: true });
+            setIsLoading(false);
+            navigate('home');
+            // Load home data after profile creation
+            loadHomeData(newUser.id);
+            const currentUser = await userService.getCurrentUser();
+            Alert.alert(
+                "Success! ✅", 
+                `Profile ${currentUser && currentUser.id && !currentUser.id.startsWith('user_') ? 'updated' : 'created'} in database!\n\nCheck Prisma Studio to see your user.`,
+                [{ text: "OK" }]
+            );
+        } catch (error) {
+            console.error('❌ Error creating profile:', error);
+            setIsLoading(false);
+            
+            // Show detailed error to user
+            Alert.alert(
+                "Error Creating Profile",
+                `Failed to create profile in database.\n\nError: ${error.message}\n\nPlease:\n1. Check backend is running\n2. Check backend terminal for errors\n3. Try again`,
+                [
+                    { 
+                        text: "Use Local Profile", 
+                        onPress: () => {
+                            // Fallback to local
+                            const fallbackUser = { ...user, ...profileData, id: `user_${Date.now()}` };
+                            setUser(fallbackUser);
+                            userService.setCurrentUser(fallbackUser);
+                            navigate('home');
+                        }
+                    },
+                    { text: "Cancel", style: "cancel" }
+                ]
+            );
+        }
     };
 
     const toggleDiscovery = () => {
@@ -481,6 +686,7 @@ export default function OrbitApp() {
                     profileData={profileData}
                     setProfileData={setProfileData}
                     completeProfile={handleCompleteProfile}
+                    isLoading={isLoading}
                 />;
             case 'home':
                 return <HomeScreen
@@ -488,11 +694,14 @@ export default function OrbitApp() {
                     user={user}
                     toggleDiscovery={toggleDiscovery}
                     setShowProfilePopup={setShowProfilePopup}
+                    potentialWaves={potentialWaves}
+                    friends={friends}
+                    loadingData={loadingData}
                 />;
             case 'waveList':
-                return <WaveListScreen navigate={navigate} />;
+                return <WaveListScreen navigate={navigate} potentialWaves={potentialWaves} />;
             case 'waveDetail':
-                return <WaveDetailScreen navigate={navigate} selectedChat={selectedChat} />;
+                return <WaveDetailScreen navigate={navigate} selectedChat={selectedChat} user={user} />;
             case 'chat':
                 return <ChatScreen
                     navigate={navigate}
@@ -533,6 +742,13 @@ export default function OrbitApp() {
                         {showProfilePopup?.id === user.id && (
                             <Button onClick={() => {
                                 setShowProfilePopup(null);
+                                // Pre-fill profile data with current user data
+                                setProfileData({
+                                    name: user.name || '',
+                                    pronouns: user.pronouns || '',
+                                    bio: user.bio || '',
+                                    avatar: user.avatar || '👤',
+                                });
                                 navigate('createProfile');
                             }}>
                                 Edit Profile
