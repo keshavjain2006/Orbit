@@ -1,26 +1,38 @@
+
 {
   "expo": {
-    "name": "orbit-new",
-    "slug": "orbit-new",
+    "name": "Orbit",
+    "slug": "orbit",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#000B58"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyArkQyCSPCAkxmEuWp4nbvravf7B-bwgvI"
+      },
+      "bundleIdentifier": "com.orbit.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/logo.png",
+        "backgroundColor": "#000B58"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.orbit.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyArkQyCSPCAkxmEuWp4nbvravf7B-bwgvI"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"

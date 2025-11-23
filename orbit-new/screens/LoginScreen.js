@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableWithoutFeedback, Keyboard, Image } from 'react-native';
 import { Phone, ChevronRight } from 'lucide-react-native';
 import Button from '../components/Button';
 import { colors } from '../styles/colors';
@@ -32,9 +33,15 @@ const LoginScreen = ({ onLogin, initialPhone = '' }) => {
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.centerContainer}>
+                {/* Logo Section */}
                 <View style={styles.logoContainer}>
-                    <Text style={{ fontSize: 48 }}>🌍</Text>
+                    <Image
+                        source={require('../assets/logo.png')}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
                 </View>
+
                 <Text style={styles.title}>Orbit</Text>
                 <Text style={styles.subtitle}>Connect with people nearby</Text>
 
@@ -71,13 +78,24 @@ const LoginScreen = ({ onLogin, initialPhone = '' }) => {
 
 const styles = StyleSheet.create({
     centerContainer: { flex: 1, backgroundColor: colors.bg, justifyContent: 'center', padding: 24, alignItems: 'center' },
+
+    // Updated Logo Styles
+    logoContainer: {
+        marginBottom: 24,
+        shadowColor: colors.primary,
+        shadowOpacity: 0.5,
+        shadowRadius: 20,
+        elevation: 12,
+    },
+    logo: {
+        width: 140,
+        height: 140,
+        borderRadius: 30, // Smooth rounded corners for the icon
+    },
+
     title: { fontSize: 32, fontWeight: 'bold', color: colors.text, marginBottom: 8 },
     subtitle: { fontSize: 16, color: colors.textMuted, marginBottom: 40 },
-    logoContainer: {
-        width: 100, height: 100, borderRadius: 50, backgroundColor: colors.bgLight,
-        alignItems: 'center', justifyContent: 'center', marginBottom: 24,
-        borderWidth: 1, borderColor: colors.primary, shadowColor: colors.primary, shadowOpacity: 0.3, shadowRadius: 10
-    },
+
     card: {
         width: '100%', backgroundColor: colors.bgCard, padding: 24, borderRadius: 24,
         borderWidth: 1, borderColor: colors.border

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
     StyleSheet,
@@ -9,7 +10,7 @@ import {
     Alert,
     StatusBar,
 } from 'react-native';
-import { Plus, MessageCircle, X } from 'lucide-react-native';
+import { Plus, MessageCircle, X, LogOut } from 'lucide-react-native';
 
 // Components
 import Avatar from './components/Avatar';
@@ -82,6 +83,28 @@ export default function App() {
         Alert.alert("Wave Sent!", `You waved at ${waveUser.name}`);
     };
 
+    const handleLogout = () => {
+        Alert.alert(
+            "Log Out",
+            "Are you sure you want to log out?",
+            [
+                { text: "Cancel", style: "cancel" },
+                {
+                    text: "Log Out",
+                    style: 'destructive',
+                    onPress: () => {
+                        // Reset state to initial values
+                        setScreen('login');
+                        setActiveTab('home');
+                        setWavedUserIds([]);
+                        // Reset user to mock initial state (clearing data)
+                        setUser(MOCK_USER);
+                    }
+                }
+            ]
+        );
+    };
+
     // --- Render Logic ---
 
     const renderContent = () => {
@@ -138,8 +161,8 @@ export default function App() {
                                     <Text style={styles.headerLogo}>{user.name || 'Orbit'}</Text>
                                 </View>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.iconButton}>
-                                <Plus size={24} color={colors.text} />
+                            <TouchableOpacity style={styles.iconButton} onPress={handleLogout}>
+                                <LogOut size={20} color={colors.error} />
                             </TouchableOpacity>
                         </View>
 
