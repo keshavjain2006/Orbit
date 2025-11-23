@@ -1,4 +1,4 @@
-
+// wave detail
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, SafeAreaView, TouchableOpacity, Dimensions } from 'react-native';
 import { ArrowLeft, Send, Check, MapPin } from 'lucide-react-native';

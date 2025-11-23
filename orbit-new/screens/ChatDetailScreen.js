@@ -1,4 +1,4 @@
-
+// chat detail screen
 import React from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { ArrowLeft, Send, MoreVertical, Phone } from 'lucide-react-native';

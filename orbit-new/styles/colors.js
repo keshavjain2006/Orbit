@@ -1,4 +1,4 @@
-
+// colors
 export const colors = {
     primary: '#C69749', // Pale Yellow - Primary Action
     primaryDark: '#e6dc9f',

@@ -1,3 +1,4 @@
+// friends screen
 import React from 'react';
 import { StyleSheet, Text, View, TextInput, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { Search } from 'lucide-react-native';

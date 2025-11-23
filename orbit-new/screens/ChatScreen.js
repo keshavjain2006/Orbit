@@ -1,3 +1,4 @@
+// chat screen
 import React from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native';
 import Avatar from '../components/Avatar';
