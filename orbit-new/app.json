@@ -13,7 +13,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "We need Bluetooth to discover people nearby.",
+        "NSBluetoothPeripheralUsageDescription": "We use Bluetooth to broadcast a short proximity identifier.",
+        "NSLocationWhenInUseUsageDescription": "We use your location to show where encounters happened on the map.",
+        "UIBackgroundModes": [
+          "bluetooth-central"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
